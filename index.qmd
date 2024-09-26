@@ -1,0 +1,35 @@
+---
+title: "Energetic Particle (EP)"
+---
+
+keV up to GeV
+
+- acceleration
+  - flares in the solar corona
+  - interplanetary shocks
+- transport
+  - drift motion
+  - pitch-angle scattering
+    - turbulence (fluctuation amplitude, spectral index, anisotropy, intermittency...)
+      - theory
+        - @matthaeusNonlinearCollisionlessPerpendicular2003
+      - observations
+    - coherent structures
+      - numerical simulations
+        - @malaraChargedparticleChaoticDynamics2021
+          - trapping times have a nearly **power-law** distribution
+  - observations
+    - associations with coherent structures
+      - SEP modulations
+        - @trenchiSolarEnergeticParticle2013, @neugebauerEnergeticParticlesTangential2015
+        - EP boundaries occur at large-scale TDs [@neugebauerEnergeticParticlesTangential2015] (for EP boundaries that were not located at interplanetary shocks or caused by intermittent connection to the Earth’s bow shock)
+
+
+
+Superdiffusive transport parallel due to the pitch-angle scattering times having a non-Markovian, **power-law** probability distribution
+
+# References
+
+- @zimbardoNonMarkovianPitchangleScattering2020
+
+

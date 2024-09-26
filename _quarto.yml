@@ -1,0 +1,16 @@
+project:
+  type: website
+  title: "Energetic Particles"
+  
+website:
+  sidebar:
+    contents: auto
+  navbar:
+    left:
+      - text: "Home"
+        href: index.qmd
+
+bibliography:
+  - files/bibliography/research.bib
+
+wrap: preserve
