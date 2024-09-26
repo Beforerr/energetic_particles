@@ -1,5 +1,11 @@
 ---
-title: "Energetic Particle (EP)"
+title: Energetic Particle (EP)
+code-links:
+  - repo
+  - href: zotero://select/library/collections/S57BI484
+    text: Zotero
+  - href: https://app.tana.inc?nodeid=mTNY0iMFlnmI
+    text: Tana
 ---
 
 keV up to GeV
@@ -18,11 +24,15 @@ keV up to GeV
       - numerical simulations
         - @malaraChargedparticleChaoticDynamics2021
           - trapping times have a nearly **power-law** distribution
+          - 1 MeV protons
   - observations
     - associations with coherent structures
-      - SEP modulations
-        - @trenchiSolarEnergeticParticle2013, @neugebauerEnergeticParticlesTangential2015
+      - SEP dispersionless modulations (SEP dropout events)
+        - @trenchiSolarEnergeticParticle2013, @neugebauerEnergeticParticlesTangential2015, @tesseinEffectCoherentStructures2015
+        - generally associated with magnetic boundaries
         - EP boundaries occur at large-scale TDs [@neugebauerEnergeticParticlesTangential2015] (for EP boundaries that were not located at interplanetary shocks or caused by intermittent connection to the Earth’s bow shock)
+          - ACE EPAM/LEMS: 65–112 and 112–187 keV
+        - magnetic discontinuities may act as barriers inhibiting the motion of energetic particles across them. [@tesseinEffectCoherentStructures2015]
 
 
 
