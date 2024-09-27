@@ -8,6 +8,6 @@ _site
 _manuscript
 _docs
 _proc
-.quarto
+/.quarto/
 *_files/
 overleaf/
