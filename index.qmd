@@ -14,6 +14,9 @@ keV up to GeV
   - flares in the solar corona
   - interplanetary shocks
 - transport
+  - perpendicular transport
+    - random walk, or braiding, of the magnetic field @giacaloneTransportCosmicRays1999
+      - $\kappa_{\perp} / \kappa_{\parallel} \sim 0.02-0.04$
   - drift motion
   - pitch-angle scattering
     - turbulence (fluctuation amplitude, spectral index, anisotropy, intermittency...)
