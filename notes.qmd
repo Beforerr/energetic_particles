@@ -1,0 +1,5 @@
+# TODO
+
+- [ ] The effect of magnetic hole / ion structure in pitch-angle scattering.
+- [ ] Compare the spatial diffusion coefficient got from the turbulence and Discontinuity scattering
+- [ ] comparing the ratio of the perpendicular-to-parallel diffusion coefficient instead of actual value

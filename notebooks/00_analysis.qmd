@@ -1,0 +1,89 @@
+---
+execute: 
+  eval: false
+---
+
+## gyro-radius
+
+Compare the gyro-radius of energetic particles with 1AU.
+
+```{julia}
+include("../src/utils.jl")
+include("../src/diffusion.jl")
+using Beforerr
+
+@info gyroradius(100u"nT", 1u"MeV") / 1u"AU" |> upreferred
+@info gyroradius(10u"nT", 1u"GeV") / 1u"AU" |> upreferred
+```
+
+<!-- [ Info: 9.659024805622024e-6 -->
+<!-- [ Info: 0.00030544518361830757 -->
+
+```{julia}
+let E = 1u"MeV", B = 10u"nT"
+    κ_perp(E)
+end
+```
+
+```{julia}
+# make a table
+df = DataFrame(
+    E=Es,
+    v=vs,
+    D_μμ=D_μμ.(Es),
+    gyroradius=gyroradius.(10u"nT", Es),
+    κ_para_Discontinuity=κ_parallel.(vs, Val(Discontinuity)),
+    κ_para_Chen24=κ_parallel.(1, Es, Val(Chen24)),
+    κ_perp_Discontinuity=κ_perp.(Es),
+)
+df.κ_perp_FL = 0.05 * df.κ_para_Chen24
+df.gyroradius_norm = df.gyroradius / 1u"AU" .|> upreferred
+df
+```
+
+```{julia}
+using CairoMakie
+using LaTeXStrings
+using Unitful
+using Unitful: Energy
+import Beforerr: lstring
+using Match
+
+const EUnit = u"MeV"
+const κUnit = u"cm^2/s"
+@derived_dimension DiffusionCoefficient dimension(κUnit)
+
+pstrip(E::Energy; u=EUnit) = ustrip(u, E)
+pstrip(κ::DiffusionCoefficient; u=κUnit) = ustrip(u, κ)
+
+
+label(x) = @match x begin
+    :E => L"Energy $(%$(lstring(EUnit)))$"
+    :κ => L"κ $(%$(lstring(κUnit)))$"
+end
+
+data(x) = @match x begin
+    :E => pstrip.(df.E)
+    :κ => pstrip.(df.κ_para_Chen24)
+end
+```
+
+```{julia}
+
+let E = pstrip.(df.E)
+    fig = Figure()
+    ax = Axis(fig[1, 1],
+        xscale=log10, yscale=log10,
+        xlabel=label(:E), ylabel=label(:κ)
+    )
+
+    scatterlines!(E, pstrip.(df.κ_para_Chen24), label=L"κ_∥ (Chen24)")
+    scatterlines!(E, pstrip.(df.κ_para_Discontinuity), label=L"κ_∥ (Discontinuity)", linewidth=4)
+
+    scatterlines!(E, pstrip.(df.κ_perp_Discontinuity), label=L"κ_⊥ (Discontinuity)", linewidth=4)
+    scatterlines!(E, pstrip.(df.κ_perp_FL), label=L"κ_⊥ (FL)")
+
+    axislegend(ax, position=:lt)
+    fig
+end
+```
