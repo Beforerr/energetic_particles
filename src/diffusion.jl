@@ -1,6 +1,6 @@
 using QuadGK
 using Unitful
-using Unitful: Velocity, Energy
+using Unitful: Velocity, Energy, BField
 using Unitful: mp
 using UnitfulAstro
 using DataFrames
@@ -8,6 +8,10 @@ include("./utils.jl")
 
 @enum κParallelMethod begin
     Chen24
+end
+
+@enum κPerpMethod begin
+    Classical
     Discontinuity
 end
 
@@ -46,25 +50,8 @@ function κ_parallel(v, ::Val{Discontinuity})
     return v^2 / 8 * integral |> u"cm^2 /s"
 end
 
-"""
-where r and E are in the units of au and keV, respectively.
-"""
-function κ_parallel(r::Integer, E, ::Val{Chen24})
-    # Coefficients from the formula
-    kappa_base = 5.16e18 * u"cm^2/s"     # Base value of kappa
-    kappa_error = 1.22e18 * u"cm^2/s"    # Uncertainty in kappa base value
-    r_exponent = 1.17
-    r_exponent_error = 0.08    # Uncertainty in r exponent
-    E_exponent = 0.71
-    E_exponent_error = 0.02    # Uncertainty in E exponent
-
-    # Calculate κ_parallel
-    kappa = kappa_base * r^r_exponent * E^E_exponent
-
-    return kappa
-end
-
-κ_parallel(r::Integer, E::Energy, ::Val{Chen24}) = κ_parallel(r, NoUnits(E / u"keV"), Val(Chen24))
+λ_parallel(κ_parallel, v::Velocity) = 3 * κ_parallel / v |> upreferred
+λ_parallel(κ_parallel, E::Energy; m=mp) = λ_parallel(κ_parallel, velocity(E; m))
 
 v_parallel(E; m=mp) = velocity(E; m) * sqrt(2) / 2
 

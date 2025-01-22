@@ -53,12 +53,6 @@ $$
 where f is the phase-space distribution function of test particles as a function of the magnitude of the particle momentum, p, position, xi , and time, t; Ui is the bulk plasma velocity; and κi j is the diffusion tensor. We note that the distribution function is related to the differential intensity, dJ/dE, which is commonly used in representations of SEP energy spectra, by dJ/dE = p2 f .
 
 
-$$
-{\kappa }_{\parallel }=(5.16\pm 1.22)\times {10}^{18}\ {r}^{1.17\pm 0.08}\ {E}^{0.71\pm 0.02}\ ({\mathrm{cm}}^{2}\,{{\rm{s}}}^{-1})
-$$
-
-The parallel diffusion coefficient is calculated as a function of radial distance from 0.062 to 0.8 au, and the particle energy from 100 keV to 1 GeV.
-
 
 # References
 

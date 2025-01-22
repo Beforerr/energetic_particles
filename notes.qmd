@@ -1,5 +1,20 @@
-# TODO
+## TODO
 
 - [ ] The effect of magnetic hole / ion structure in pitch-angle scattering.
 - [ ] Compare the spatial diffusion coefficient got from the turbulence and Discontinuity scattering
 - [ ] comparing the ratio of the perpendicular-to-parallel diffusion coefficient instead of actual value
+
+## Observations
+
+### Particle reservoirs
+
+
+## Parallel diffusion
+
+@chenParallelDiffusionCoefficient2024
+
+> The parallel diffusion coefficient is calculated as a function of radial distance from 0.062 to 0.8 au, and the particle energy from 100 keV to 1 GeV. We find that κ∥ increases exponentially with both heliocentric distance and energy of particles.
+
+$$
+κ_{\|}=(5.16 \pm 1.22) \times 10^{18} r^{1.17 \pm 0.08} E^{0.71 \pm 0.02}\left(\mathrm{~cm}^2 \mathrm{~s}^{-1}\right)
+$$
