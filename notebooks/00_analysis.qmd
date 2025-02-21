@@ -1,6 +1,7 @@
 ---
 execute: 
   eval: false
+engine: julia
 ---
 
 ## velocity dispersion analysis (VDA)
@@ -122,7 +123,7 @@ end
 ```
 
 ```{julia}
-function plot_diffusion(df; x=:E, y=:κ)
+function plot_diffusion(df; x=:E, y=:κ, add_perp=true)
     E = pstrip.(df.E)
     fig = Figure()
     ax = Axis(fig[1, 1],
@@ -133,15 +134,22 @@ function plot_diffusion(df; x=:E, y=:κ)
     scatterlines!(E, pstrip.(df.κ_para_Chen24), label=L"κ_∥ (Chen24)")
     scatterlines!(E, pstrip.(df.κ_para_Discontinuity), label=L"κ_∥ (Discontinuity)", linewidth=4)
 
-    scatterlines!(E, pstrip.(df.κ_perp_Discontinuity), label=L"κ_⊥ (Discontinuity)", linewidth=4)
-    scatterlines!(E, pstrip.(df.κ_perp_Classical), label=L"κ_⊥ (Classical)")
-    scatterlines!(E, pstrip.(df.κ_perp_FL), label=L"κ_⊥ (FL)")
+    if add_perp
+        scatterlines!(E, pstrip.(df.κ_perp_Discontinuity), label=L"κ_⊥ (Discontinuity)", linewidth=4)
+        scatterlines!(E, pstrip.(df.κ_perp_Classical), label=L"κ_⊥ (Classical)")
+        scatterlines!(E, pstrip.(df.κ_perp_FL), label=L"κ_⊥ (FL)")
+    end
 
     axislegend(ax, position=:lt)
     fig
 end
 
 plot_diffusion(df)
+```
+
+```{julia}
+plot_diffusion(df; add_perp=false)
+easy_save("para_diffusion")
 ```
 
 ```{julia}
