@@ -75,6 +75,8 @@ function κ_perp(E, B::BField, ::Val{Classical}; m=mp)
 end
 ```
 
+## Summary
+
 ```{julia}
 # make a table
 function create_df(Es; B=10u"nT", m=mp)
@@ -106,19 +108,39 @@ using Match
 
 const EUnit = u"MeV"
 const κUnit = u"cm^2/s"
+const DμμUnit = u"s^-1"
 @derived_dimension DiffusionCoefficient dimension(κUnit)
+@derived_dimension PitchAngleDiffusionCoefficient dimension(DμμUnit)
 
 pstrip(E::Energy; u=EUnit) = ustrip(u, E)
 pstrip(κ::DiffusionCoefficient; u=κUnit) = ustrip(u, κ)
+pstrip(Dμμ::PitchAngleDiffusionCoefficient; u=DμμUnit) = ustrip(u, Dμμ)
 
 label(x) = @match x begin
     :E => L"Energy $(%$(lstring(EUnit)))$"
     :κ => L"κ $(%$(lstring(κUnit)))$"
+    :Dμμ => L"D_{μμ} $(%$(lstring(DμμUnit)))$"
 end
 
 data(x) = @match x begin
     :E => pstrip.(df.E)
     :κ => pstrip.(df.κ_para_Chen24)
+    :Dμμ => pstrip.(df.D_μμ)
+end
+```
+
+### Pitch angle diffusion plot
+
+```{julia}
+let x = :E, y = :Dμμ
+    fig = Figure()
+    ax = Axis(fig[1, 1],
+        xscale=log10, yscale=log10,
+        xlabel=label(x), ylabel=label(y)
+    )
+
+    scatterlines!(data(x), data(y))
+    easy_save("D_μμ")
 end
 ```
 
