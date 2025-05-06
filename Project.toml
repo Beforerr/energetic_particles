@@ -1,9 +1,15 @@
 [deps]
+AlgebraOfGraphics = "cbdf2221-f076-402e-a563-3d30da359d67"
 Beforerr = "49aed396-608e-4c3f-b6d6-a749216c9ea7"
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+CurrentSheetTestParticle = "70b924fa-544d-466c-bf9c-e2ef4b9a84d3"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+DataFramesMeta = "1313f7d8-7da2-5740-9ea0-a2ca25f37964"
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 Match = "7eb4fadd-790c-5f42-8a69-bfa0b872bfbf"
 QuadGK = "1fd47b50-473d-5c70-9696-f719f8f3bcdc"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 UnitfulAstro = "6112ee07-acf9-5e0f-b108-d242c714bf9f"
+
+[sources]
+CurrentSheetTestParticle = {path = "../CurrentSheetTestParticle"}

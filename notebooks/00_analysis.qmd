@@ -119,7 +119,7 @@ pstrip(Dμμ::PitchAngleDiffusionCoefficient; u=DμμUnit) = ustrip(u, Dμμ)
 label(x) = @match x begin
     :E => L"Energy $(%$(lstring(EUnit)))$"
     :κ => L"κ $(%$(lstring(κUnit)))$"
-    :Dμμ => L"D_{μμ} $(%$(lstring(DμμUnit)))$"
+    :Dμμ => L"𝒟_{μμ} $(%$(lstring(DμμUnit)))$"
 end
 
 data(x) = @match x begin
@@ -132,6 +132,7 @@ end
 ### Pitch angle diffusion plot
 
 ```{julia}
+# update_theme!(Beforerr.theme_pub(; width=6.5))
 let x = :E, y = :Dμμ
     fig = Figure()
     ax = Axis(fig[1, 1],
@@ -143,6 +144,8 @@ let x = :E, y = :Dμμ
     easy_save("D_μμ")
 end
 ```
+
+![](../figures/D_μμ.png)
 
 ```{julia}
 function plot_diffusion(df; x=:E, y=:κ, add_perp=true)

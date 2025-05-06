@@ -1,7 +1,8 @@
 import 'files/quarto.just'
 
 default:
-  just --list
+    just --list
 
 ensure-env:
-  rsync --update --recursive ~/projects/share/quarto/ ./
+    julia --project=. -e 'using Pkg; Pkg.develop("Beforerr")'
+    rsync --update --recursive ~/projects/share/quarto/ ./
