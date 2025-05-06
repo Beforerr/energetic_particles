@@ -9,25 +9,18 @@ begin
     β = 90
     d = @dict(θ, β, v)
     diffeq = (; dtmax=1e-3)
-    init_kwargs = (; Nw=8, Nϕ=32)
+    init_kwargs = (; Nw=8, Nϕ=128)
     sols, (wϕs, B) = solve_params(RDProblemParams(; diffeq, init_kwargs, d...))
 end;
 ```
 
 
 ```{julia}
-using CurrentSheetTestParticle: field_lines_distance, field_lines_asym_distance, _field_lines_asym_distance
+using CurrentSheetTestParticle: field_lines_distance
 
 dists = map(sols) do sol
-    field_lines_asym_distance(sol, B)
+    field_lines_distance(sol, B)
 end
-
-dR_perp_asym_approx = map(sols) do sol
-    _field_lines_asym_distance(sol, B)
-end
-
-
-plot(dR_perp_asym_approx - getindex.(dists, :dR_perp_asym))
 ```
 
 ```{julia}
@@ -38,8 +31,19 @@ df = DataFrame(dists)
 @info "Statistics" maximum(df.dR_perp_min) maximum(df.dR_perp_asym)
 @chain df begin
     @transform! :wϕ = wϕs
-    @rtransform! :w0 = :wϕ[1]
+    @rtransform! begin
+        :w0 = :wϕ[1]
+        :ϕ0 = :wϕ[2]
+    end
 end
-spec = data(df) * AlgebraOfGraphics.density() * (mapping(:dR_perp_asym) * mapping(; color=:w0 => nonnumeric))
-draw(spec)
+
+w0 = :w0 => x -> string(round(x, digits=2))
+
+f = Figure()
+spec = data(df) * AlgebraOfGraphics.density() * (mapping(:dR_perp_asym) * mapping(; color=w0))
+
+draw!(f[1, 1:3], spec)
+draw!(f[2:4, 1:3], data(df) * mapping(:ϕ0; layout=w0) * (mapping(:dR_perp_asym) + mapping(:dR_perp_min)) * visual(Lines))
+f
+
 ```
