@@ -1,17 +1,92 @@
 
 ```{julia}
 using CurrentSheetTestParticle
+using CurrentSheetTestParticle: Vern9
+using CurrentSheetTestParticle: solve_param, ConstField
+using CurrentSheetTestParticle.Analysis
 using DrWatson
+using DataFrames, DataFramesMeta
+using CairoMakie, AlgebraOfGraphics
+using Beforerr
+```
 
-begin
-    θ = 45
-    v = 8
-    β = 90
-    d = @dict(θ, β, v)
+```{julia}
+function run_sim(d; verbose=false)
+    save_everystep = false
     diffeq = (; dtmax=1e-3)
-    init_kwargs = (; Nw=8, Nϕ=128)
-    sols, (wϕs, B) = solve_params(RDProblemParams(; diffeq, init_kwargs, d...))
-end;
+    init_kwargs = (; w=-0.8:0.2:0.8, Nϕ=128)
+    sols, (wϕs, B, u0s) = solve_params(RDProblemParams(; diffeq, init_kwargs, d...); save_everystep, verbose)
+    results = process_sols(sols, B, wϕs)
+    results.v .= d[:v]
+    results.θ .= d[:θ]
+    results.β .= d[:β]
+    @chain results begin
+        @transform! :u1_0 = solve_unperturbed.(:B, :u0, :t1; diffeq)
+        @rtransform!(:Δx = :u1[1] - :u0[1], :Δy = :u1[2] - :u0[2], :Δz = :u1[3] - :u0[3])
+        @rtransform!(:lx = :u1_0[1] - :u0[1], :ly = :u1_0[2] - :u0[2], :lz = :u1_0[3] - :u0[3])
+        @rtransform!(:δx = :Δx - :lx, :δy = :Δy - :ly, :δz = :Δz - :lz)
+    end
+end
+
+getaxis(ae::AxisEntries) = ae.axis
+getaxis(p) = map(getaxis, p)
+```
+
+```{julia}
+function solve_unperturbed(B, u0, t1; save_everystep=false, alg=Vern9(), kw...)
+    Bc = ConstField(B(u0))
+    tspan = Float64.((0, t1))
+    sol0 = solve_param(Bc, u0, tspan; save_everystep, alg, kw...)
+    return sol0.u[end]
+end
+```
+
+```{julia}
+config = Dict(
+    :θ => 60,
+    :β => [5, 10, 30, 60],
+    :v => 8,
+)
+all_params = dict_list(config)
+results = run_sim.(all_params)
+result = vcat(results...)
+process!(result)
+```
+
+```{julia}
+orig_f(x) = x[3] > 0 ? "up" : "down"
+spec0 = data(results[1]) * AlgebraOfGraphics.density()
+spec = spec0 * mapping(col=:u0 => orig_f)
+legend = (; position=:top)
+f = Figure()
+
+p1 = draw!(f[1, 1], spec * mapping([:δx, :Δx, :lx], color=dims(1) => renamer(["δr (Δr - l_r)", "Δr", "l_r"])))
+p2 = draw!(f[2, 1], spec * mapping([:δy, :Δy, :ly], color=dims(1)))
+p3 = draw!(f[3, 1], spec * mapping([:δz, :Δz, :lz], color=dims(1)))
+p4 = draw!(f[1:3, 2], spec0 * mapping(:Δμ, color=:u0 => orig_f))
+legend!(f[0, 1], p1; tellwidth=false)
+legend!(f[0, 2], p4; tellwidth=false)
+f
+```
+
+```{julia}
+using Statistics
+f = Figure()
+color = :β => nonnumeric
+row = :u0 => orig_f
+col = dims(1) => renamer(["", "", ""])
+facet = (; linkyaxes=:none)
+spec = data(result) * AlgebraOfGraphics.density(; npoints=800)
+p1 = draw!(f[1, 1], spec * mapping([:δx, :δy, :δz]; col, color); facet)
+p4 = draw!(f[2, 1], spec * mapping([:δx, :δy, :δz]; col, color, row); facet)
+xlims!(p1[1].axis, 0, 150)
+xlims!(p1[2].axis, -67, 67)
+xlims!(p1[3].axis, -67, 67)
+xlims!.(getaxis(p4[:, 1]), 0, 150)
+xlims!.(getaxis(p4[:, 2]), -67, 67)
+xlims!.(getaxis(p4[:, 3]), -67, 67)
+legend!(f[0, :], p1; tellwidth=false, orientation=:horizontal)
+easy_save("δr_βscan")
 ```
 
 
@@ -24,9 +99,6 @@ end
 ```
 
 ```{julia}
-using CairoMakie
-using AlgebraOfGraphics
-using DataFrames, DataFramesMeta
 df = DataFrame(dists)
 @info "Statistics" maximum(df.dR_perp_min) maximum(df.dR_perp_asym)
 @chain df begin
