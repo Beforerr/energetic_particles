@@ -2,13 +2,43 @@
 ```{julia}
 using CurrentSheetTestParticle
 using CurrentSheetTestParticle: Vern9
-using CurrentSheetTestParticle: solve_param, ConstField
+using CurrentSheetTestParticle: solve_param, ConstField, guiding_center, solve_fl
 using CurrentSheetTestParticle.Analysis
 using DrWatson
 using DataFrames, DataFramesMeta
 using CairoMakie, AlgebraOfGraphics
 using Beforerr
 ```
+
+The time it takes for a particle to resonate with consecutive current sheets corresponds to the duration the particle spends within the current sheet $T_{cs}$ plus the time it takes to free stream along the magnetic field line $T_{fs}$: $T=T_{cs} + T_{fs}$
+
+The value of $T_{cs}$ is obtained from test particle simulations. To calculate $T_{fs}$, we divide the distance between adjacent current sheets, denoted as $s$, by the particle’s changed parallel velocity $v_{∥,1}$ after the interaction with the current sheet. The separation distance $s_{fs}$ is treated as a system parameter.
+
+$T_{fs} = \frac{s_{fs}}{|v_{∥,1}|}$
+
+In the absence of scattering by the current sheet, the particle would stream freely over a distance given by the unperturbed parallel velocity $v_{∥,0}$ multiplied by the total time $T$; that is:
+
+$$
+s_0 = v_{∥,0} T = v_{∥,0} (T_{cs} + s_{fs}/|v_{∥,1}|)
+$$
+
+By comparison, when a particle undergoes interaction with the current sheet, the total distance it covers is $s = s_{cs}^{*} + sign(\frac{v_{∥,1}}{v_{∥,0}})s_{fs}$, where $s_{cs}^{*}$ is the effective parallel distance traveled within the current sheet.
+
+$$
+Δs_∥ = s - s_0 = (s_{cs}^{*} - v_{∥,0} T_{cs}) + s_{fs}(1- v_{∥,0}/v_{∥,1}) ≈  s_{fs} (1- v_{∥,0}/v_{∥,1} - v_{∥,0} T_{cs}/s_{fs})
+$$
+
+Diffusion coefficient $κ$ is defined as:
+
+$$
+\begin{align}
+κ_∥ &= \frac{(Δs_∥)^2}{Δt} = \frac{(s_{fs} (1- v_{∥,0}/v_{∥,1} - v_{∥,0} T_{cs}/s_{fs}))^2}{ (T_{cs} + s_{fs}/v_{∥,1})}
+\\
+κ_⊥ &= \frac{(Δs_⊥)^2}{Δt} = \frac{(Δs_⊥)^2}{ (T_{cs} + s_{fs}/v_{∥,1})}
+\end{align}
+$$
+
+
 
 ```{julia}
 function run_sim(d; verbose=false)
@@ -20,7 +50,10 @@ function run_sim(d; verbose=false)
     results.v .= d[:v]
     results.θ .= d[:θ]
     results.β .= d[:β]
-    @chain results begin
+end
+
+function run_upperturbed(df)
+    @chain df begin
         @transform! :u1_0 = solve_unperturbed.(:B, :u0, :t1; diffeq)
         @rtransform!(:Δx = :u1[1] - :u0[1], :Δy = :u1[2] - :u0[2], :Δz = :u1[3] - :u0[3])
         @rtransform!(:lx = :u1_0[1] - :u0[1], :ly = :u1_0[2] - :u0[2], :lz = :u1_0[3] - :u0[3])
@@ -52,6 +85,28 @@ results = run_sim.(all_params)
 result = vcat(results...)
 process!(result)
 ```
+
+```{julia}
+using LinearAlgebra
+para_dist(p, p0, û) = dot(p - p0, normalize(û))
+
+save_everystep = false
+@chain result begin
+    @rtransform! @astable begin
+        :gc0 = guiding_center(:u0, :B)
+        :gcf = guiding_center(:u1, :B)
+        :Bz0 = :B(:gc0)[3]
+        :s = abs(:v * :μ0 * :t1)
+        sgn = sign(:Bz0 * :gc0[3])
+        tspan = (0, -sgn * :s)
+        fl = solve_fl(:gc0, :B; tspan, save_everystep)
+        :u1_fl = fl.u[end]
+        :û = :B(:u1_fl)
+        :para_dist = para_dist(:gcf, :gc0, :û)
+    end
+end
+```
+
 
 ```{julia}
 orig_f(x) = x[3] > 0 ? "up" : "down"

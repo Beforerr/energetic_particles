@@ -32,6 +32,38 @@ using Unitful: mp, me
 <!-- [ Info: 9.659024805622024e-6 -->
 <!-- [ Info: 0.00030544518361830757 -->
 
+## Field lines
+
+```{julia}
+using CairoMakie
+using CurrentSheetTestParticle: RotationalDiscontinuity, solve_fl, OutOfDomainZ
+
+f = Figure()
+ax = Axis3(f[1, 1])
+isoutofdomain = OutOfDomainZ(5)
+u0 = [0, 0, 0]
+
+colors = Makie.wong_colors()
+styles = [:solid, :dash, :dot, :dashdot, :dashdotdot]
+for (iθ, θ) in enumerate([10, 30, 60])
+    for (iβ, β) in enumerate([30, 60, 90])
+        plot = (color=colors[iθ], linestyle=styles[iβ])
+        B = RotationalDiscontinuity(; β, θ)
+        sol = solve_fl(u0, B; tspan=(0, 100), isoutofdomain)
+        sol2 = solve_fl(u0, B; tspan=(0, -100), isoutofdomain)
+        label_str = "θ=$θ, β=$β"
+        lines!(sol; idxs=(1, 2, 3), plot..., label=label_str)
+        lines!(sol2; idxs=(1, 2, 3), plot..., label=nothing)
+    end
+end
+axislegend(ax, position=:rt)
+f
+```
+
+
+
+
+
 ## Parallel diffusion
 
 @chenParallelDiffusionCoefficient2024
