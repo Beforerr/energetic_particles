@@ -1,8 +1,53 @@
 
+## Analysis
+
+The total time between two consecutive current sheet encounters is modeled as the sum of the time spent inside the current sheet $T_{cs}$, and the time spent free-streaming between sheets $T_{fs}$, given by:
+
+$$
+T = T_{cs} + T_{fs}, \quad T_{fs} = \frac{s_{fs}}{|v_{∥,1}|}
+$$
+
+where $v_{∥,0}$, $v_{∥,1}$ are the particle's changed parallel velocity before and after interacting with the current sheet, respectively.
+
+In the absence of scattering, the particle would follow the field line and travel a distance:
+
+$$
+s_0 = |v_{∥,0}| \cdot T = |v_{∥,0}| \left( T_{cs} + \frac{s_{fs}}{|v_{∥,1}|} \right).
+$$
+
+However, when scattering occurs, the total distance traveled becomes:
+
+$$
+s = s_{cs}^* + \text{sign}\left(\frac{v_{∥,1}}{v_{∥,0}}\right) s_{fs} \approx \text{sign}\left(\frac{v_{∥,1}}{v_{∥,0}}\right) s_{fs}
+$$
+
+under the approximation that $s_{cs}^* << s_{fs}$, where $s_{cs}^*$ is the effective parallel distance the particle travels within the current sheet. The net displacement compared to the unperturbed case is then:
+
+$$
+Δ s_∥ = s - s_0 = s_{fs} \left(\text{sign}\left(\frac{v_{∥,1}}{v_{∥,0}}\right) - \frac{|v_{∥,0}|}{|v_{∥,1}|} \right) - |v_{∥,0}| T_{cs}
+$$
+
+The parallel spatial diffusion coefficient is then expressed as:
+
+$$
+κ_∥ = \frac{(Δ s_∥)^2}{Δ t}
+$$
+
+Similarly, for the perpendicular direction:
+
+$$
+κ_\perp = \frac{(Δ s_\perp)^2}{T_{cs} + | s_{fs} / v_{∥,1} |}.
+$$
+
+The key parameters—$v_{∥,1}$, $T_{cs}$, $Δ s_\perp$, and $Δ t$—are directly extracted from test-particle simulations, while quantities such as the current sheet separation distance $s_{fs}$, thickness, shear angle, and normal orientation are treated as system parameters derived from solar wind observations. Together, these inputs enable a systematic and physically grounded estimation of spatial diffusion coefficients under realistic heliospheric conditions.
+
+## Simulation
+
+
 ```{julia}
 using CurrentSheetTestParticle
 using CurrentSheetTestParticle: Vern9
-using CurrentSheetTestParticle: solve_param, ConstField, guiding_center, solve_fl
+using CurrentSheetTestParticle: solve_param, ConstField, guiding_center, field_lines, solve_fl, field_lines_distance
 using CurrentSheetTestParticle.Analysis
 using DrWatson
 using DataFrames, DataFramesMeta
@@ -10,48 +55,137 @@ using CairoMakie, AlgebraOfGraphics
 using Beforerr
 ```
 
-The time it takes for a particle to resonate with consecutive current sheets corresponds to the duration the particle spends within the current sheet $T_{cs}$ plus the time it takes to free stream along the magnetic field line $T_{fs}$: $T=T_{cs} + T_{fs}$
-
-The value of $T_{cs}$ is obtained from test particle simulations. To calculate $T_{fs}$, we divide the distance between adjacent current sheets, denoted as $s$, by the particle’s changed parallel velocity $v_{∥,1}$ after the interaction with the current sheet. The separation distance $s_{fs}$ is treated as a system parameter.
-
-$T_{fs} = \frac{s_{fs}}{|v_{∥,1}|}$
-
-In the absence of scattering by the current sheet, the particle would stream freely over a distance given by the unperturbed parallel velocity $v_{∥,0}$ multiplied by the total time $T$; that is:
-
-$$
-s_0 = v_{∥,0} T = v_{∥,0} (T_{cs} + s_{fs}/|v_{∥,1}|)
-$$
-
-By comparison, when a particle undergoes interaction with the current sheet, the total distance it covers is $s = s_{cs}^{*} + sign(\frac{v_{∥,1}}{v_{∥,0}})s_{fs}$, where $s_{cs}^{*}$ is the effective parallel distance traveled within the current sheet.
-
-$$
-Δs_∥ = s - s_0 = (s_{cs}^{*} - v_{∥,0} T_{cs}) + s_{fs}(1- v_{∥,0}/v_{∥,1}) ≈  s_{fs} (1- v_{∥,0}/v_{∥,1} - v_{∥,0} T_{cs}/s_{fs})
-$$
-
-Diffusion coefficient $κ$ is defined as:
-
-$$
-\begin{align}
-κ_∥ &= \frac{(Δs_∥)^2}{Δt} = \frac{(s_{fs} (1- v_{∥,0}/v_{∥,1} - v_{∥,0} T_{cs}/s_{fs}))^2}{ (T_{cs} + s_{fs}/v_{∥,1})}
-\\
-κ_⊥ &= \frac{(Δs_⊥)^2}{Δt} = \frac{(Δs_⊥)^2}{ (T_{cs} + s_{fs}/v_{∥,1})}
-\end{align}
-$$
-
-
-
 ```{julia}
-function run_sim(d; verbose=false)
+function run_sim(d; Nϕ=128, verbose=false)
     save_everystep = false
     diffeq = (; dtmax=1e-3)
-    init_kwargs = (; w=-0.8:0.2:0.8, Nϕ=128)
+    init_kwargs = (; w=-0.8:0.1:0.8, Nϕ)
     sols, (wϕs, B, u0s) = solve_params(RDProblemParams(; diffeq, init_kwargs, d...); save_everystep, verbose)
     results = process_sols(sols, B, wϕs)
     results.v .= d[:v]
     results.θ .= d[:θ]
     results.β .= d[:β]
+    return results
 end
 
+getaxis(ae::AxisEntries) = ae.axis
+getaxis(p) = map(getaxis, p)
+```
+
+```{julia}
+config = Dict(
+    :θ => 60,
+    :β => [10, 30, 60],
+    :v => 8,
+)
+all_params = dict_list(config)
+results = run_sim.(all_params)
+result = vcat(results...)
+
+function process_perp!(result)
+    @rtransform! result @astable begin
+        :gc0 = guiding_center(:u0, :B)
+        :gcf = guiding_center(:u1, :B)
+        fl0_sol, flf_sol = field_lines(:gc0, :gcf, :B; tmax=1000 * :t1)
+        dist = field_lines_distance(fl0_sol, flf_sol, :B)
+        :Δs_perp = dist.dR_perp_asym
+        :Δs_perp_min = dist.dR_perp_min
+    end
+end
+
+function process_free_stream!(result, s_fs)
+    @rtransform! result @astable begin
+        :s_fs = s_fs
+        :v_para_0 = :v * :μ0
+        :v_para_1 = :v * :μ1
+        :Δt = :t1 + s_fs / abs(:v_para_1)
+        :Δs_para = s_fs * (sign(:v_para_1 / :v_para_0) - abs(:v_para_0 ./ :v_para_1)) - abs(:v_para_0) * :t1
+        :κ_para = (:Δs_para^2) / :Δt
+        :κ_perp = (:Δs_perp^2) / :Δt
+    end
+end
+
+@chain result begin
+    process!
+    process_perp!
+end
+```
+
+```{julia}
+m = (
+    μ0=:μ0 => L"μ_0",
+    μ0_n=:μ0 => x -> string(round(x, digits=2)),
+    t_cs=:t1 => L"t_{cross}",
+    Δs_perp=:Δs_perp => L"Δs_{\perp}",
+    Δs_para=:Δs_para => L"Δs_{\parallel}",
+    κ_para=:κ_para => L"κ_{\parallel}",
+    κ_perp=:κ_perp => L"κ_{\perp}",
+    κ_ratio=:κ_ratio => L"κ_{\perp}/κ_{\parallel}",
+)
+
+s = (
+    t_cs_μ0=mapping(m.t_cs) * AlgebraOfGraphics.density(),
+    Δt_μ0=mapping(:Δt) * AlgebraOfGraphics.density(),
+    μ=mapping(:μ0, :μ1),
+    s_perp=mapping(m.Δs_perp) * AlgebraOfGraphics.density(),
+    s_para=mapping(m.Δs_para) * AlgebraOfGraphics.density(),
+    κ_para=mapping(m.κ_para) * AlgebraOfGraphics.density(),
+    κ_perp=mapping(m.κ_perp) * AlgebraOfGraphics.density(),
+    κs=mapping([m.κ_perp, m.κ_para, m.κ_ratio], row=dims(1) => renamer(["", "", ""]))
+)
+```
+
+```{julia}
+f = Figure()
+let df = @subset result :β .== 60 :t1 .< 100
+    d = data(df)
+    c = mapping(color=m.μ0_n)
+    p1 = draw!(f[1, 1], d * c * s.t_cs_μ0)
+    p2 = draw!(f[2, 1], d * c * s.Δt_μ0)
+    pμ = draw!(f[1:2, 2], d * s.μ)
+    legend!(f[0, :], p1; tellwidth=false, orientation=:horizontal)
+    lines!(pμ[1].axis, [-1, 1], [-1, 1]; color=:red, linestyle=:dash)
+    lines!(pμ[1].axis, [-1, 1], [1, -1]; color=:blue, linestyle=:dash)
+end
+easy_save("Δt")
+```
+
+```{julia}
+f = Figure()
+let df = @subset result :β .== 60 :t1 .< 100
+    d = data(df) * mapping(color=m.μ0_n)
+    draw!(f[1, 1], d * s.s_perp)
+    draw!(f[2, 1], d * s.s_para)
+end
+easy_save("s_perp_para")
+```
+
+```{julia}
+using Statistics
+
+begin
+    tdf = @subset result :β .== 60
+    df = mapreduce(vcat, [10000, 1000, 100]) do s_fs
+        @chain tdf begin
+            process_free_stream!(s_fs)
+            @groupby(:μ0, :s_fs)
+            combine([:κ_perp, :κ_para] .=> mean; renamecols=false)
+            @transform! :κ_ratio = :κ_perp ./ :κ_para
+            sort!(:μ0)
+        end
+    end
+    d = data(df) * mapping(:μ0) * s.κs * visual(ScatterLines)
+    axis = (; yscale=log10)
+    draw(d * mapping(color=:s_fs => nonnumeric); axis)
+    easy_save("κ_s_free_stream")
+end
+```
+
+## Unperturbed trajectory
+
+Note that unperturbed trajectory is different from the unscattered trajectory!!!
+
+```{julia}
 function run_upperturbed(df)
     @chain df begin
         @transform! :u1_0 = solve_unperturbed.(:B, :u0, :t1; diffeq)
@@ -61,11 +195,6 @@ function run_upperturbed(df)
     end
 end
 
-getaxis(ae::AxisEntries) = ae.axis
-getaxis(p) = map(getaxis, p)
-```
-
-```{julia}
 function solve_unperturbed(B, u0, t1; save_everystep=false, alg=Vern9(), kw...)
     Bc = ConstField(B(u0))
     tspan = Float64.((0, t1))
@@ -74,17 +203,6 @@ function solve_unperturbed(B, u0, t1; save_everystep=false, alg=Vern9(), kw...)
 end
 ```
 
-```{julia}
-config = Dict(
-    :θ => 60,
-    :β => [5, 10, 30, 60],
-    :v => 8,
-)
-all_params = dict_list(config)
-results = run_sim.(all_params)
-result = vcat(results...)
-process!(result)
-```
 
 ```{julia}
 using LinearAlgebra
@@ -102,7 +220,7 @@ save_everystep = false
         fl = solve_fl(:gc0, :B; tspan, save_everystep)
         :u1_fl = fl.u[end]
         :û = :B(:u1_fl)
-        :para_dist = para_dist(:gcf, :gc0, :û)
+        # :para_dist = para_dist(:gcf, :gc0, :û)
     end
 end
 ```
@@ -142,35 +260,4 @@ xlims!.(getaxis(p4[:, 2]), -67, 67)
 xlims!.(getaxis(p4[:, 3]), -67, 67)
 legend!(f[0, :], p1; tellwidth=false, orientation=:horizontal)
 easy_save("δr_βscan")
-```
-
-
-```{julia}
-using CurrentSheetTestParticle: field_lines_distance
-
-dists = map(sols) do sol
-    field_lines_distance(sol, B)
-end
-```
-
-```{julia}
-df = DataFrame(dists)
-@info "Statistics" maximum(df.dR_perp_min) maximum(df.dR_perp_asym)
-@chain df begin
-    @transform! :wϕ = wϕs
-    @rtransform! begin
-        :w0 = :wϕ[1]
-        :ϕ0 = :wϕ[2]
-    end
-end
-
-w0 = :w0 => x -> string(round(x, digits=2))
-
-f = Figure()
-spec = data(df) * AlgebraOfGraphics.density() * (mapping(:dR_perp_asym) * mapping(; color=w0))
-
-draw!(f[1, 1:3], spec)
-draw!(f[2:4, 1:3], data(df) * mapping(:ϕ0; layout=w0) * (mapping(:dR_perp_asym) + mapping(:dR_perp_min)) * visual(Lines))
-f
-
 ```
