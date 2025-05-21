@@ -3,7 +3,7 @@ using Unitful: Velocity, Mass, BField, Density, Charge, Energy
 using UnitfulAstro
 
 energy(v; m=Unitful.mp) = 0.5 * m * v^2 |> u"keV"
-velocity(E; m=Unitful.mp) = sqrt(2 * E / m)
+velocity(E; m=Unitful.mp) = sqrt(2 * E / m) |> u"km/s"
 
 gyroradius(B::BField, mass::Mass, q::Charge, Vperp::Velocity) =
     upreferred(abs(mass * Vperp / (q * B)))

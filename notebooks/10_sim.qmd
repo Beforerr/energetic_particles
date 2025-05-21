@@ -1,3 +1,9 @@
+---
+execute:
+  eval: false
+engine: julia
+---
+
 
 ## Analysis
 
@@ -49,38 +55,58 @@ using CurrentSheetTestParticle
 using CurrentSheetTestParticle: Vern9
 using CurrentSheetTestParticle: solve_param, ConstField, guiding_center, field_lines, solve_fl, field_lines_distance
 using CurrentSheetTestParticle.Analysis
+using TestParticleAnalysis: m, M
 using DrWatson
 using DataFrames, DataFramesMeta
 using CairoMakie, AlgebraOfGraphics
 using Beforerr
+
 ```
 
 ```{julia}
-function run_sim(d; Nϕ=128, verbose=false)
+function run_sim(d; verbose=false)
     save_everystep = false
     diffeq = (; dtmax=1e-3)
-    init_kwargs = (; w=-0.8:0.1:0.8, Nϕ)
-    sols, (wϕs, B, u0s) = solve_params(RDProblemParams(; diffeq, init_kwargs, d...); save_everystep, verbose)
+    sols, (wϕs, B, u0s) = solve_params(RDProblemParams(; diffeq, d...); save_everystep, verbose)
     results = process_sols(sols, B, wϕs)
     results.v .= d[:v]
     results.θ .= d[:θ]
     results.β .= d[:β]
-    return results
+    d[:results] = results
+    d
 end
 
 getaxis(ae::AxisEntries) = ae.axis
 getaxis(p) = map(getaxis, p)
 ```
 
+Normalized distance $s_{fs}/l_0$:
+
+```{julia}
+include("../src/utils.jl")
+
+s_fs_n = let erg0 = 1u"MeV", s_fs = 4e2u"km/s" * 30u"minute", v′ = 8
+    l0 = 3e3u"km"
+    B0 = 10u"nT"
+    t0 = Unitful.mp / (Unitful.q * B0) |> upreferred
+    v0 = l0 / t0
+    v = v0 * v′
+    @info v energy(v)
+    s_fs / l0 |> NoUnits
+end
+```
+
 ```{julia}
 config = Dict(
     :θ => 60,
-    :β => [10, 30, 60],
+    :β => [0, 10, 30, 60],
     :v => 8,
+    :init_kwargs => (; w=-0.8:0.1:0.8, Nϕ=128)
 )
 all_params = dict_list(config)
-results = run_sim.(all_params)
-result = vcat(results...)
+results = produce_or_load.(run_sim, all_params, datadir())
+get_df(d) = d[1]["results"]
+result = vcat(get_df.(results)...)
 
 function process_perp!(result)
     @rtransform! result @astable begin
@@ -88,10 +114,16 @@ function process_perp!(result)
         :gcf = guiding_center(:u1, :B)
         fl0_sol, flf_sol = field_lines(:gc0, :gcf, :B; tmax=1000 * :t1)
         dist = field_lines_distance(fl0_sol, flf_sol, :B)
+        :fl0_sol = fl0_sol
+        :s_cs = abs(fl0_sol.t[end])
         :Δs_perp = dist.dR_perp_asym
         :Δs_perp_min = dist.dR_perp_min
     end
 end
+
+# s_cs_fl(θ, β) = let 
+
+# end
 
 function process_free_stream!(result, s_fs)
     @rtransform! result @astable begin
@@ -99,7 +131,7 @@ function process_free_stream!(result, s_fs)
         :v_para_0 = :v * :μ0
         :v_para_1 = :v * :μ1
         :Δt = :t1 + s_fs / abs(:v_para_1)
-        :Δs_para = s_fs * (sign(:v_para_1 / :v_para_0) - abs(:v_para_0 ./ :v_para_1)) - abs(:v_para_0) * :t1
+        :Δs_para = :s_cs + s_fs * (sign(:v_para_1 / :v_para_0) - abs(:v_para_0 / :v_para_1)) - abs(:v_para_0) * :t1
         :κ_para = (:Δs_para^2) / :Δt
         :κ_perp = (:Δs_perp^2) / :Δt
     end
@@ -108,31 +140,8 @@ end
 @chain result begin
     process!
     process_perp!
+    process_free_stream!(s_fs_n)
 end
-```
-
-```{julia}
-m = (
-    μ0=:μ0 => L"μ_0",
-    μ0_n=:μ0 => x -> string(round(x, digits=2)),
-    t_cs=:t1 => L"t_{cross}",
-    Δs_perp=:Δs_perp => L"Δs_{\perp}",
-    Δs_para=:Δs_para => L"Δs_{\parallel}",
-    κ_para=:κ_para => L"κ_{\parallel}",
-    κ_perp=:κ_perp => L"κ_{\perp}",
-    κ_ratio=:κ_ratio => L"κ_{\perp}/κ_{\parallel}",
-)
-
-s = (
-    t_cs_μ0=mapping(m.t_cs) * AlgebraOfGraphics.density(),
-    Δt_μ0=mapping(:Δt) * AlgebraOfGraphics.density(),
-    μ=mapping(:μ0, :μ1),
-    s_perp=mapping(m.Δs_perp) * AlgebraOfGraphics.density(),
-    s_para=mapping(m.Δs_para) * AlgebraOfGraphics.density(),
-    κ_para=mapping(m.κ_para) * AlgebraOfGraphics.density(),
-    κ_perp=mapping(m.κ_perp) * AlgebraOfGraphics.density(),
-    κs=mapping([m.κ_perp, m.κ_para, m.κ_ratio], row=dims(1) => renamer(["", "", ""]))
-)
 ```
 
 ```{julia}
@@ -148,6 +157,65 @@ let df = @subset result :β .== 60 :t1 .< 100
     lines!(pμ[1].axis, [-1, 1], [1, -1]; color=:blue, linestyle=:dash)
 end
 easy_save("Δt")
+```
+
+```{julia}
+using Statistics
+
+errorbar_visual = (visual(ScatterLines) + visual(Errorbars; whiskerwidth=6))
+
+begin
+    β = 60
+    df = @subset result :β .== β :t1 .< 100
+    # Calculate average values by binning μ0
+    avg_df = @chain df begin
+        @groupby(:μ0)
+        @combine(:Δs_perp = mean(:Δs_perp) ± std(:Δs_perp), :Δs_para = mean(:Δs_para) ± std(:Δs_para))
+        sort!(:μ0)
+    end
+
+    spec = (data(df) * visual(Scatter; markersize=5) + data(avg_df) * errorbar_visual * visual(color=:red))
+    draw(spec * mapping(m.μ0, [m.Δs_para, m.Δs_perp], row=dims(1) => renamer(["", ""])))
+    easy_save("Δs_β=$β")
+end
+```
+
+
+```{julia}
+using Measurements
+import Base: typemax, typemin
+using AlgebraOfGraphics: AesX, AesY, AesColor, Normal, dictionary
+import AlgebraOfGraphics: aesthetic_mapping
+
+typemax(::Type{Measurement{T}}) where T = typemax(T)
+typemin(::Type{Measurement{T}}) where T = typemin(T)
+
+aesthetic_mapping(::Type{Errorbars}, ::Normal, ::Normal) = errorbar_mapping(2)
+
+function errorbar_mapping(i::Int)
+    dictionary([
+        1 => AesX,
+        2 => AesY,
+        :color => AesColor,
+    ])
+end
+```
+
+
+```{julia}
+
+avg_df = @chain result begin
+    @groupby(:μ0, :β)
+    @combine(
+        :Δs_perp = mean(:Δs_perp) ± std(:Δs_perp),
+        :Δs_para = mean(:Δs_para) ± std(:Δs_para)
+    )
+    sort!(:μ0)
+end
+
+spec = data(avg_df) * (; group=:β => nonnumeric, color=:β => nonnumeric) * errorbar_visual
+fg = draw(spec * mapping(m.μ0, [m.Δs_para, m.Δs_perp], row=dims(1) => renamer(["", ""])))
+easy_save("Δs_βscan")
 ```
 
 ```{julia}

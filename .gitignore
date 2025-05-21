@@ -9,5 +9,6 @@ _proc
 /.quarto/
 *_files/
 overleaf/
+data/
 
 Manifest.toml
