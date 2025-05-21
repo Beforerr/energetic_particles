@@ -52,7 +52,7 @@ The key parameters—$v_{∥,1}$, $T_{cs}$, $Δ s_\perp$, and $Δ t$—are direc
 
 ```{julia}
 using CurrentSheetTestParticle
-using CurrentSheetTestParticle: Vern9
+using CurrentSheetTestParticle: Vern9, DEFAULT_TSPAN
 using CurrentSheetTestParticle: solve_param, ConstField, guiding_center, field_lines, solve_fl, field_lines_distance
 using CurrentSheetTestParticle.Analysis
 using TestParticleAnalysis: m, M
@@ -146,7 +146,7 @@ end
 
 ```{julia}
 f = Figure()
-let df = @subset result :β .== 60 :t1 .< 100
+let df = @subset result :β .== 60 :t1 .< DEFAULT_TSPAN[2]
     d = data(df)
     c = mapping(color=m.μ0_n)
     p1 = draw!(f[1, 1], d * c * s.t_cs_μ0)
@@ -166,7 +166,7 @@ errorbar_visual = (visual(ScatterLines) + visual(Errorbars; whiskerwidth=6))
 
 begin
     β = 60
-    df = @subset result :β .== β :t1 .< 100
+    df = @subset result :β .== β :t1 .< DEFAULT_TSPAN[2]
     # Calculate average values by binning μ0
     avg_df = @chain df begin
         @groupby(:μ0)
@@ -205,6 +205,7 @@ end
 ```{julia}
 
 avg_df = @chain result begin
+    @subset :t1 .< DEFAULT_TSPAN[2]
     @groupby(:μ0, :β)
     @combine(
         :Δs_perp = mean(:Δs_perp) ± std(:Δs_perp),
