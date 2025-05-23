@@ -33,6 +33,28 @@ $$
 Δ s_∥ = s - s_0 = s_{fs} \left(\text{sign}\left(\frac{v_{∥,1}}{v_{∥,0}}\right) - \frac{|v_{∥,0}|}{|v_{∥,1}|} \right) - |v_{∥,0}| T_{cs}
 $$
 
+$$
+P(α) dα = d(\sin^2 α)
+=> P(α) = 2\sin α |\cos α|
+$$
+
+$$
+<Δ s_∥> =  \int Δ s_∥ P(\mathbf{v}) dv^3 \sim \int_{0}^{\pi} Δ s_∥ P(α) \sin α dα \sim \int_{0}^{\pi} Δ s_∥ |\cos α| \sin^2 α dα
+$$
+
+Given $\mu=\cos α$, we have:
+$$
+\int_{0}^{\pi} Δ s_∥ |\cos α| \sin^2 α dα = \int_{-1}^{1} Δ s_∥ |\mu| \sqrt{1-\mu^2} d\mu
+$$
+
+For discrete samples $\mu_i$, we have:
+$$
+<Δ s_∥> =  \sum_i Δ s_{∥,i} |\mu_i| \sqrt{1-\mu_i^2} / \sum_i |\mu_i| \sqrt{1-\mu_i^2}
+$$
+
+where $N$ is the number of samples.
+
+
 The parallel spatial diffusion coefficient is then expressed as:
 
 $$
