@@ -24,18 +24,17 @@ $$
 However, when scattering occurs, the total distance traveled becomes:
 
 $$
-s = s_{cs}^* + \text{sign}\left(\frac{v_{∥,1}}{v_{∥,0}}\right) s_{fs} \approx \text{sign}\left(\frac{v_{∥,1}}{v_{∥,0}}\right) s_{fs}
+s = s_{cs}^* + \text{sign}\left(\frac{v_{∥,1}}{v_{∥,0}}\right) s_{fs}
 $$
 
 under the approximation that $s_{cs}^* << s_{fs}$, where $s_{cs}^*$ is the effective parallel distance the particle travels within the current sheet. The net displacement compared to the unperturbed case is then:
 
 $$
-Δ s_∥ = s - s_0 = s_{fs} \left(\text{sign}\left(\frac{v_{∥,1}}{v_{∥,0}}\right) - \frac{|v_{∥,0}|}{|v_{∥,1}|} \right) - |v_{∥,0}| T_{cs}
+Δ s_∥ = s - s_0 = s_{fs} \left(\text{sign}\left(\frac{v_{∥,1}}{v_{∥,0}}\right) - \frac{|v_{∥,0}|}{|v_{∥,1}|} \right) + s_{cs}^* - |v_{∥,0}| T_{cs}
 $$
 
 $$
-P(α) dα = d(\sin^2 α)
-=> P(α) = 2\sin α |\cos α|
+P(α) dα = d(\sin^2 α) => P(α) = 2\sin α |\cos α|
 $$
 
 $$
@@ -82,7 +81,6 @@ using DrWatson
 using DataFrames, DataFramesMeta
 using CairoMakie, AlgebraOfGraphics
 using Beforerr
-
 ```
 
 ```{julia}
@@ -101,6 +99,25 @@ end
 getaxis(ae::AxisEntries) = ae.axis
 getaxis(p) = map(getaxis, p)
 ```
+
+## Demo of some trajectories
+
+```{julia}
+f = Figure()
+let df = @subset(result, :β .== 60, :v .== 8, :t1 .< DEFAULT_TSPAN[2])
+    d = data(df)
+    c = mapping(color=m.μ0_n)
+    p1 = draw!(f[1, 1], d * c * s.t_cs_μ0)
+    p2 = draw!(f[2, 1], d * c * s.Δt_μ0)
+    pμ = draw!(f[1:2, 2], d * s.μ)
+    legend!(f[0, :], p1; tellwidth=false, orientation=:horizontal)
+    lines!(pμ[1].axis, [-1, 1], [-1, 1]; color=:red, linestyle=:dash)
+    lines!(pμ[1].axis, [-1, 1], [1, -1]; color=:blue, linestyle=:dash)
+end
+easy_save("Δt")
+```
+
+---
 
 Normalized distance $s_{fs}/l_0$:
 

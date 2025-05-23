@@ -1,0 +1,102 @@
+---
+title: Energetic particle transport by solar wind current sheets
+author:
+  - name: Zijin Zhang
+  - name: Anton V. Artemyev
+  - name: Vassilis Angelopoulos
+format:
+  html: default
+  pptx: default
+---
+
+The total time between two consecutive current sheet encounters is modeled as the sum of the time spent inside the current sheet $T_{cs}$, and the time spent free-streaming between sheets $T_{fs}$, given by:
+
+$$
+T = T_{cs} + T_{fs}, \quad T_{fs} = \frac{s_{fs}}{|v_{∥,1}|}
+$$
+
+where $v_{∥,0}$, $v_{∥,1}$ are the particle's changed parallel velocity before and after interacting with the current sheet, respectively.
+
+In the absence of scattering, the particle would follow the field line and travel a distance:
+
+$$
+s_0 = |v_{∥,0}| \cdot T = |v_{∥,0}| \left( T_{cs} + \frac{s_{fs}}{|v_{∥,1}|} \right).
+$$
+
+However, when scattering occurs, the total distance traveled becomes:
+
+$$
+s = s_{cs}^* + \text{sign}\left(\frac{v_{∥,1}}{v_{∥,0}}\right) s_{fs}
+$$
+
+For reflection, $\text{sign}\left(\frac{v_{∥,1}}{v_{∥,0}}\right) = -1$.
+
+
+under the approximation that $s_{cs}^* << s_{fs}$, where $s_{cs}^*$ is the effective parallel distance the particle travels within the current sheet. The net displacement compared to the unperturbed case is then:
+
+$$
+Δ s_∥ = s - s_0 = s_{fs} \left(\text{sign}\left(\frac{v_{∥,1}}{v_{∥,0}}\right) - \frac{|v_{∥,0}|}{|v_{∥,1}|} \right) + s_{cs}^* - |v_{∥,0}| T_{cs}
+$$
+
+
+To analyze the average displacement resulting from multiple interactions with a current sheet, we begin by examining how the pitch-angle $\mu=\cos α$ is distributed following successive encounters. 
+
+$$
+P(α) dα = d(\sin^2 α) => P(α) = \sin α |\cos α|
+$$
+
+![](./figures/pa_cdf.png)
+
+This distribution provides a basis for computing the weighted average of both the perpendicular and parallel displacements.
+
+$$
+<Δ s_∥> =  \int Δ s_∥ P(𝐯) d𝐯 = 2π v^2 \int_{0}^{\pi} Δ s_∥ P(α) \sin α dα \propto \int_{0}^{\pi} Δ s_∥ |\cos α| \sin^2 α dα
+$$
+
+Given $\mu=\cos α$, we have:
+
+$$
+\int_{0}^{\pi} Δ s_∥ |\cos α| \sin^2 α dα = \int_{-1}^{1} Δ s_∥ |\mu| \sqrt{1-\mu^2} d\mu
+$$
+
+For discrete samples $\mu_i$, we have:
+
+$$
+\overline{Δ s_∥} =  \sum_i w_i Δ s_{∥,i}  / \sum w
+$$
+
+where $w_i = |\mu_i| \sqrt{1-\mu_i^2}$.
+
+Current sheets of left-hand or right-hand polarity have symmetry in perpendicular displacements.
+
+Assuming that both occur with equal probability, due to this symmetry, the net average perpendicular transport vanishes, yielding a mean perpendicular displacement of zero. 
+
+This polarity does not influence the parallel displacement.
+
+$$
+\overline{Δ s_⊥} = 0
+$$
+
+
+![](./figures/Δs_β=60.pdf)
+
+![](./figures/Δs_βscan_vscan_weighted.pdf)
+
+The parallel spatial diffusion coefficient is then expressed as:
+
+$$
+κ_∥ = \sqrt{\frac{1}{\sum{w}} \sum_{i=1}^n {w_i  \frac{(Δ s_{∥,i} - \overline{Δ s_∥})^2}{T_i} }}
+$$
+
+Similarly, for the perpendicular direction:
+
+$$
+κ_⊥ = \sqrt{\frac{1}{\sum{w}} \sum_{i=1}^n {w_i  \frac{(Δ s_{⊥,i} - \overline{Δ s_⊥})^2}{T_i} }}
+$$
+
+where $T_i = T_{cs, i} + | s_{fs} / v_{∥,1,i} |$.
+
+
+
+
+The standard deviations of both parallel and perpendicular displacements increase with the shear angle. Notably, the perpendicular standard deviation is more strongly influenced by the ratio of the particle gyroradius to the current sheet thickness, indicating a greater sensitivity to the scale of the magnetic structure relative to the particle’s gyro-motion.
