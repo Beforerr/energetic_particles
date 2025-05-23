@@ -103,5 +103,6 @@ where $T_i = T_{cs, i} + | s_{fs} / v_{∥,1,i} |$.
 
 $l_0 =3 \times 10^3 \text{ km}$
 
+$κ_0 = l_0^2 / t_0 \approx 10^7 \text{ km}^2 \text{ s}^{-1}$
 
 The standard deviations of both parallel and perpendicular displacements increase with the shear angle. Notably, the perpendicular standard deviation is more strongly influenced by the ratio of the particle gyroradius to the current sheet thickness, indicating a greater sensitivity to the scale of the magnetic structure relative to the particle’s gyro-motion.

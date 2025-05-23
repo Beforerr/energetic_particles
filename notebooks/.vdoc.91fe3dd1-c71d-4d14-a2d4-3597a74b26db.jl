@@ -1,77 +1,77 @@
----
-execute:
-  eval: false
-engine: julia
----
-
-
-## Analysis
-
-The total time between two consecutive current sheet encounters is modeled as the sum of the time spent inside the current sheet $T_{cs}$, and the time spent free-streaming between sheets $T_{fs}$, given by:
-
-$$
-T = T_{cs} + T_{fs}, \quad T_{fs} = \frac{s_{fs}}{|v_{∥,1}|}
-$$
-
-where $v_{∥,0}$, $v_{∥,1}$ are the particle's changed parallel velocity before and after interacting with the current sheet, respectively.
-
-In the absence of scattering, the particle would follow the field line and travel a distance:
-
-$$
-s_0 = |v_{∥,0}| \cdot T = |v_{∥,0}| \left( T_{cs} + \frac{s_{fs}}{|v_{∥,1}|} \right).
-$$
-
-However, when scattering occurs, the total distance traveled becomes:
-
-$$
-s = s_{cs}^* + \text{sign}\left(\frac{v_{∥,1}}{v_{∥,0}}\right) s_{fs}
-$$
-
-under the approximation that $s_{cs}^* << s_{fs}$, where $s_{cs}^*$ is the effective parallel distance the particle travels within the current sheet. The net displacement compared to the unperturbed case is then:
-
-$$
-Δ s_∥ = s - s_0 = s_{fs} \left(\text{sign}\left(\frac{v_{∥,1}}{v_{∥,0}}\right) - \frac{|v_{∥,0}|}{|v_{∥,1}|} \right) + s_{cs}^* - |v_{∥,0}| T_{cs}
-$$
-
-$$
-P(α) dα = d(\sin^2 α) => P(α) = 2\sin α |\cos α|
-$$
-
-$$
-<Δ s_∥> =  \int Δ s_∥ P(\mathbf{v}) dv^3 \sim \int_{0}^{\pi} Δ s_∥ P(α) \sin α dα \sim \int_{0}^{\pi} Δ s_∥ |\cos α| \sin^2 α dα
-$$
-
-Given $\mu=\cos α$, we have:
-$$
-\int_{0}^{\pi} Δ s_∥ |\cos α| \sin^2 α dα = \int_{-1}^{1} Δ s_∥ |\mu| \sqrt{1-\mu^2} d\mu
-$$
-
-For discrete samples $\mu_i$, we have:
-$$
-<Δ s_∥> =  \sum_i Δ s_{∥,i} |\mu_i| \sqrt{1-\mu_i^2} / \sum_i |\mu_i| \sqrt{1-\mu_i^2}
-$$
-
-where $N$ is the number of samples.
-
-
-The parallel spatial diffusion coefficient is then expressed as:
-
-$$
-κ_∥ = \frac{(Δ s_∥)^2}{Δ t}
-$$
-
-Similarly, for the perpendicular direction:
-
-$$
-κ_\perp = \frac{(Δ s_\perp)^2}{T_{cs} + | s_{fs} / v_{∥,1} |}.
-$$
-
-The key parameters—$v_{∥,1}$, $T_{cs}$, $Δ s_\perp$, and $Δ t$—are directly extracted from test-particle simulations, while quantities such as the current sheet separation distance $s_{fs}$, thickness, shear angle, and normal orientation are treated as system parameters derived from solar wind observations. Together, these inputs enable a systematic and physically grounded estimation of spatial diffusion coefficients under realistic heliospheric conditions.
-
-## Simulation
-
-
-```{julia}
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
 using CurrentSheetTestParticle
 using CurrentSheetTestParticle: Vern9, DEFAULT_TSPAN
 using CurrentSheetTestParticle: solve_param, ConstField, guiding_center, field_lines, solve_fl, field_lines_distance
@@ -84,9 +84,9 @@ using Beforerr
 
 m = tp_pairing()
 M = tp_mapping(m)
-```
-
-```{julia}
+#
+#
+#
 function run_sim(d; verbose=false)
     save_everystep = false
     diffeq = (; dtmax=1e-3)
@@ -101,15 +101,15 @@ end
 
 getaxis(ae::AxisEntries) = ae.axis
 getaxis(p) = map(getaxis, p)
-```
-
-## Demo of some trajectories
-
----
-
-Normalized distance $s_{fs}/l_0$:
-
-```{julia}
+#
+#
+#
+#
+#
+#
+#
+#
+#
 include("../src/utils.jl")
 
 s_fs_n = let l0 = 3e3u"km", s_fs = 4e2u"km/s" * 30u"minute", v′ = 8
@@ -122,9 +122,9 @@ s_fs_n = let l0 = 3e3u"km", s_fs = 4e2u"km/s" * 30u"minute", v′ = 8
     @info "κ_0 = " l0^2 / t0
     s_fs / l0 |> NoUnits
 end
-```
-
-```{julia}
+#
+#
+#
 config = Dict(
     :θ => 60,
     :β => [0, 10, 30, 45, 60],
@@ -169,10 +169,10 @@ end
     process_perp!
     process_free_stream!(s_fs_n)
 end
-```
-
-<!--
-```{julia}
+#
+#
+#
+#
 f = Figure()
 let df = @subset(result, :β .== 60, :v .== 8, :t1 .< DEFAULT_TSPAN[2])
     d = data(df)
@@ -186,9 +186,9 @@ let df = @subset(result, :β .== 60, :v .== 8, :t1 .< DEFAULT_TSPAN[2])
 end
 easy_save("Δt")
 ``` 
--->
-
-```{julia}
+#
+#
+#
 using Measurements
 import Base: typemin
 using AlgebraOfGraphics: AesX, AesY, AesColor, Normal, dictionary
@@ -205,9 +205,9 @@ function errorbar_mapping(i::Int)
         :color => AesColor,
     ])
 end
-```
-
-```{julia}
+#
+#
+#
 using Measurements
 using Statistics
 using StatsBase
@@ -219,9 +219,9 @@ function hlines_measurement!(ax, m::Measurement; label="", kw...)
     hlines!(ax, m.val + m.err; linestyle=:dot, kw...)
     hlines!(ax, m.val - m.err; linestyle=:dot, kw...)
 end
-```
-
-```{julia}
+#
+#
+#
 # Visualize the weighting function abs(μ0) * sqrt(1 - μ0^2)
 let
     μ = range(-1, 1, length=1000)
@@ -243,9 +243,9 @@ let
 end
 
 easy_save("weight_function")
-```
-
-```{julia}
+#
+#
+#
 begin
     β = 60
     df = @subset(result, :β .== β, :v .== 8, :t1 .< DEFAULT_TSPAN[2])
@@ -277,10 +277,10 @@ begin
 
     easy_save("Δs_β=$β"; force=false)
 end
-```
-
-
-```{julia}
+#
+#
+#
+#
 begin
     β = 60
     spec = data(df) * visual(Scatter; markersize=5) + data(avg_df) * errorbar_visual * visual(color=:red)
@@ -301,9 +301,9 @@ begin
 
     easy_save("Δt_β=$β"; force=false)
 end
-```
-
-```{julia}
+#
+#
+#
 avg_df = @chain result begin
     @subset :t1 .< DEFAULT_TSPAN[2] :v .== 8
     @groupby(:μ0, :β)
@@ -317,9 +317,9 @@ end
 spec = data(avg_df) * (; group=:β => nonnumeric, color=:β => nonnumeric) * errorbar_visual
 fg = draw(spec * mapping(m.μ0, [m.Δs_para, m.Δs_perp], row=dims(1) => renamer(["Parallel", "Perpendicular"])))
 easy_save("Δs_β_μ0scan")
-```
-
-```{julia}
+#
+#
+#
 avg_df = @chain result begin
     @transform! :w = @. abs(:μ0) * sqrt(1 - :μ0^2)
     @subset :t1 .< DEFAULT_TSPAN[2]
@@ -347,17 +347,17 @@ spec *= mapping(:β, [:T, m.Δs_perp, m.Δs_para], row=dims(1) => renamer1)
 spec = spec * gspec
 fg = draw(spec, scales(DodgeX=(; width=2)))
 easy_save("Δs_βscan_vscan_weighted"; force=true)
-```
-
-```{julia}
+#
+#
+#
 spec = data(avg_df) * mapping(:β, [m.κ_perp, m.κ_para, m.κ_ratio], row=dims(1) => renamer(["Perpendicular", "Parallel", "Ratio"]))
 spec *= errorbar_visual * gspec
 fg = draw(spec, scales(DodgeX=(; width=2)))
 easy_save("κ_βscan_vscan_weighted"; force=true)
-```
-
-
-```{julia}
+#
+#
+#
+#
 f = Figure()
 let df = @subset result :β .== 60 :t1 .< 100
     d = data(df) * mapping(color=m.μ0_n)
@@ -365,9 +365,9 @@ let df = @subset result :β .== 60 :t1 .< 100
     draw!(f[2, 1], d * s.s_para)
 end
 easy_save("s_perp_para")
-```
-
-```{julia}
+#
+#
+#
 using Statistics
 
 begin
@@ -386,13 +386,13 @@ begin
     draw(d * mapping(color=:s_fs => nonnumeric); axis)
     easy_save("κ_s_free_stream")
 end
-```
-
-## Unperturbed trajectory
-
-Note that unperturbed trajectory is different from the unscattered trajectory!!!
-
-```{julia}
+#
+#
+#
+#
+#
+#
+#
 function run_upperturbed(df)
     @chain df begin
         @transform! :u1_0 = solve_unperturbed.(:B, :u0, :t1; diffeq)
@@ -408,10 +408,10 @@ function solve_unperturbed(B, u0, t1; save_everystep=false, alg=Vern9(), kw...)
     sol0 = solve_param(Bc, u0, tspan; save_everystep, alg, kw...)
     return sol0.u[end]
 end
-```
-
-
-```{julia}
+#
+#
+#
+#
 using LinearAlgebra
 para_dist(p, p0, û) = dot(p - p0, normalize(û))
 
@@ -430,10 +430,10 @@ save_everystep = false
         # :para_dist = para_dist(:gcf, :gc0, :û)
     end
 end
-```
-
-
-```{julia}
+#
+#
+#
+#
 orig_f(x) = x[3] > 0 ? "up" : "down"
 spec0 = data(results[1]) * AlgebraOfGraphics.density()
 spec = spec0 * mapping(col=:u0 => orig_f)
@@ -447,9 +447,9 @@ p4 = draw!(f[1:3, 2], spec0 * mapping(:Δμ, color=:u0 => orig_f))
 legend!(f[0, 1], p1; tellwidth=false)
 legend!(f[0, 2], p4; tellwidth=false)
 f
-```
-
-```{julia}
+#
+#
+#
 using Statistics
 f = Figure()
 color = :β => nonnumeric
@@ -467,4 +467,6 @@ xlims!.(getaxis(p4[:, 2]), -67, 67)
 xlims!.(getaxis(p4[:, 3]), -67, 67)
 legend!(f[0, :], p1; tellwidth=false, orientation=:horizontal)
 easy_save("δr_βscan")
-```
+#
+#
+#
