@@ -78,9 +78,13 @@ $$
 $$
 
 
+![](./figures/Δt_β=60.png)
+
 ![](./figures/Δs_β=60.pdf)
 
 ![](./figures/Δs_βscan_vscan_weighted.pdf)
+
+![](./figures/κ_βscan_vscan_weighted.pdf)
 
 The parallel spatial diffusion coefficient is then expressed as:
 
@@ -97,6 +101,7 @@ $$
 where $T_i = T_{cs, i} + | s_{fs} / v_{∥,1,i} |$.
 
 
+$l_0 =3 \times 10^3 \text{ km}$
 
 
 The standard deviations of both parallel and perpendicular displacements increase with the shear angle. Notably, the perpendicular standard deviation is more strongly influenced by the ratio of the particle gyroradius to the current sheet thickness, indicating a greater sensitivity to the scale of the magnetic structure relative to the particle’s gyro-motion.

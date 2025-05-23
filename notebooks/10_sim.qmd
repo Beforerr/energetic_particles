@@ -76,11 +76,14 @@ using CurrentSheetTestParticle
 using CurrentSheetTestParticle: Vern9, DEFAULT_TSPAN
 using CurrentSheetTestParticle: solve_param, ConstField, guiding_center, field_lines, solve_fl, field_lines_distance
 using CurrentSheetTestParticle.Analysis
-using TestParticleAnalysis: m, M
+using TestParticleAnalysis: m, tp_mapping
 using DrWatson
 using DataFrames, DataFramesMeta
 using CairoMakie, AlgebraOfGraphics
 using Beforerr
+
+m = tp_pairing()
+M = tp_mapping(m)
 ```
 
 ```{julia}
@@ -102,21 +105,6 @@ getaxis(p) = map(getaxis, p)
 
 ## Demo of some trajectories
 
-```{julia}
-f = Figure()
-let df = @subset(result, :β .== 60, :v .== 8, :t1 .< DEFAULT_TSPAN[2])
-    d = data(df)
-    c = mapping(color=m.μ0_n)
-    p1 = draw!(f[1, 1], d * c * s.t_cs_μ0)
-    p2 = draw!(f[2, 1], d * c * s.Δt_μ0)
-    pμ = draw!(f[1:2, 2], d * s.μ)
-    legend!(f[0, :], p1; tellwidth=false, orientation=:horizontal)
-    lines!(pμ[1].axis, [-1, 1], [-1, 1]; color=:red, linestyle=:dash)
-    lines!(pμ[1].axis, [-1, 1], [1, -1]; color=:blue, linestyle=:dash)
-end
-easy_save("Δt")
-```
-
 ---
 
 Normalized distance $s_{fs}/l_0$:
@@ -135,18 +123,17 @@ end
 ```
 
 ```{julia}
-config = Dict{Any,Any}(
+config = Dict(
     :θ => 60,
     :β => [0, 10, 30, 45, 60],
-    :v => [8, 16],
+    :v => [8, 16, 32],
     :init_kwargs => (; w=-0.8:0.1:0.8, Nϕ=128)
 )
 all_params = dict_list(config)
 results = produce_or_load.(run_sim, all_params, datadir())
 function get_df(res)
     d = res[1]
-    haskey(d, :results) && return d[:results]
-    haskey(d, "results") && return d["results"]
+    d[only(keys(d) ∩ [:results, "results"])]
 end
 result = vcat(get_df.(results)...)
 
@@ -163,19 +150,15 @@ function process_perp!(result)
     end
 end
 
-# s_cs_fl(θ, β) = let 
-
-# end
-
 function process_free_stream!(result, s_fs)
     @rtransform! result @astable begin
         :s_fs = s_fs
         :v_para_0 = :v * :μ0
         :v_para_1 = :v * :μ1
-        :Δt = :t1 + s_fs / abs(:v_para_1)
+        :T = :t1 + s_fs / abs(:v_para_1)
         :Δs_para = :s_cs + s_fs * (sign(:v_para_1 / :v_para_0) - abs(:v_para_0 / :v_para_1)) - abs(:v_para_0) * :t1
-        :κ_para = (:Δs_para^2) / :Δt
-        :κ_perp = (:Δs_perp^2) / :Δt
+        :κ_para = (:Δs_para^2) / :T
+        :κ_perp = (:Δs_perp^2) / :T
     end
 end
 
@@ -186,73 +169,29 @@ end
 end
 ```
 
+<!--
 ```{julia}
 f = Figure()
 let df = @subset(result, :β .== 60, :v .== 8, :t1 .< DEFAULT_TSPAN[2])
     d = data(df)
     c = mapping(color=m.μ0_n)
-    p1 = draw!(f[1, 1], d * c * s.t_cs_μ0)
-    p2 = draw!(f[2, 1], d * c * s.Δt_μ0)
-    pμ = draw!(f[1:2, 2], d * s.μ)
+    p1 = draw!(f[1, 1], d * c * M.t_cs_μ0)
+    p2 = draw!(f[2, 1], d * c * M.Δt_μ0)
+    pμ = draw!(f[1:2, 2], d * M.μ)
     legend!(f[0, :], p1; tellwidth=false, orientation=:horizontal)
     lines!(pμ[1].axis, [-1, 1], [-1, 1]; color=:red, linestyle=:dash)
     lines!(pμ[1].axis, [-1, 1], [1, -1]; color=:blue, linestyle=:dash)
 end
 easy_save("Δt")
-```
-
-```{julia}
-using Statistics
-using StatsBase
-
-errorbar_visual = (visual(ScatterLines) + visual(Errorbars; whiskerwidth=6))
-
-function hlines_measurement!(ax, m::Measurement; label="", kw...)
-    hlines!(ax, m.val; linestyle=:dash, label, kw...)
-    hlines!(ax, m.val + m.err; linestyle=:dot, kw...)
-    hlines!(ax, m.val - m.err; linestyle=:dot, kw...)
-end
-
-begin
-    β = 60
-    df = @subset(result, :β .== β, :v .== 8, :t1 .< DEFAULT_TSPAN[2])
-    # Calculate average values by binning μ0
-    avg_df = @chain df begin
-        @groupby(:μ0)
-        @combine(:Δs_perp = mean(:Δs_perp) ± std(:Δs_perp), :Δs_para = mean(:Δs_para) ± std(:Δs_para))
-        sort!(:μ0)
-    end
-
-    spec = (data(df) * visual(Scatter; markersize=5) + data(avg_df) * errorbar_visual * visual(color=:red))
-    fg = draw(spec * mapping(m.μ0, [m.Δs_para, m.Δs_perp], row=dims(1) => renamer(["", ""])))
-
-
-    w = StatsBase.weights(@. abs(df.μ0) * sqrt(1 - df.μ0^2))
-
-    # Calculate weighted means
-    Δs_perp_weighted_mean = mean(df.Δs_perp, w) ± std(df.Δs_perp, w)
-    Δs_para_weighted_mean = mean(df.Δs_para, w) ± std(df.Δs_para, w)
-
-    # Add horizontal lines for weighted means
-    hlines_measurement!(fg.grid[1, 1].axis, Δs_para_weighted_mean; label="<Δs_∥>: $(Δs_para_weighted_mean)", color=:blue)
-    hlines_measurement!(fg.grid[2, 1].axis, Δs_perp_weighted_mean; label="<Δs_⊥>: $(Δs_perp_weighted_mean)", color=:blue)
-
-    # Add legends
-    axislegend(fg.grid[1, 1].axis; position=:cb)
-    axislegend(fg.grid[2, 1].axis; position=:ct)
-
-    easy_save("Δs_β=$β")
-end
-```
-
+``` 
+-->
 
 ```{julia}
 using Measurements
-import Base: typemax, typemin
+import Base: typemin
 using AlgebraOfGraphics: AesX, AesY, AesColor, Normal, dictionary
 import AlgebraOfGraphics: aesthetic_mapping
 
-# typemax(::Type{Measurement{T}}) where T = typemax(T)
 typemin(::Type{Measurement{T}}) where T = typemin(T)
 
 aesthetic_mapping(::Type{Errorbars}, ::Normal, ::Normal) = errorbar_mapping(2)
@@ -266,6 +205,101 @@ function errorbar_mapping(i::Int)
 end
 ```
 
+```{julia}
+using Measurements
+using Statistics
+using StatsBase
+
+errorbar_visual = (visual(ScatterLines) + visual(Errorbars; whiskerwidth=6))
+
+function hlines_measurement!(ax, m::Measurement; label="", kw...)
+    hlines!(ax, m.val; linestyle=:dash, label, kw...)
+    hlines!(ax, m.val + m.err; linestyle=:dot, kw...)
+    hlines!(ax, m.val - m.err; linestyle=:dot, kw...)
+end
+```
+
+```{julia}
+# Visualize the weighting function abs(μ0) * sqrt(1 - μ0^2)
+let
+    μ = range(-1, 1, length=1000)
+    weight = @. abs(μ) * sqrt(1 - μ^2)
+    
+    f = Figure()
+    ax = Axis(f[1, 1], 
+        xlabel = "μ = cos(α)",
+        ylabel = "Weight: |μ|⋅√(1-μ²)",
+        title = "Pitch Angle Weighting Function (Peak at μ = ±1/√2, α ≈ 45° or 135°)")
+    
+    lines!(ax, μ, weight, linewidth=2)
+    
+    # Add vertical lines at key points
+    vlines!(ax, 0, color=:red, linestyle=:dash)
+    vlines!(ax, 1/sqrt(2), color=:blue, linestyle=:dash)
+    vlines!(ax, -1/sqrt(2), color=:blue, linestyle=:dash)
+    f
+end
+
+easy_save("weight_function")
+```
+
+```{julia}
+begin
+    β = 60
+    df = @subset(result, :β .== β, :v .== 8, :t1 .< DEFAULT_TSPAN[2])
+    # Calculate average values by binning μ0
+    avg_df = @chain df begin
+        @groupby(:μ0)
+        @combine(
+            :Δs_perp = mean(:Δs_perp) ± std(:Δs_perp), :Δs_para = mean(:Δs_para) ± std(:Δs_para),
+            :T = mean(:T) ± std(:T), :t1 = mean(:t1) ± std(:t1)
+        )
+        sort!(:μ0)
+    end
+
+    spec = data(df) * visual(Scatter; markersize=5) + data(avg_df) * errorbar_visual * visual(color=:red)
+    fg = draw(spec * mapping(m.μ0, [m.Δs_para, m.Δs_perp], row=dims(1) => renamer(["", ""])))
+
+    # Calculate weighted means
+    w = StatsBase.weights(@. abs(df.μ0) * sqrt(1 - df.μ0^2))
+    Δs_perp = mean(df.Δs_perp, w) ± std(df.Δs_perp, w)
+    Δs_para = mean(df.Δs_para, w) ± std(df.Δs_para, w)
+
+    # Add horizontal lines for weighted means
+    hlines_measurement!(fg.grid[1, 1].axis, Δs_para; label="<Δs_∥>: $(Δs_para)", color=:blue)
+    hlines_measurement!(fg.grid[2, 1].axis, Δs_perp; label="<Δs_⊥>: $(Δs_perp)", color=:blue)
+
+    # Add legends
+    axislegend(fg.grid[1, 1].axis; position=:cb)
+    axislegend(fg.grid[2, 1].axis; position=:ct)
+
+    easy_save("Δs_β=$β"; force=false)
+end
+```
+
+
+```{julia}
+begin
+    β = 60
+    spec = data(df) * visual(Scatter; markersize=5) + data(avg_df) * errorbar_visual * visual(color=:red)
+    fg = draw(spec * mapping(m.μ0, [m.t_cs,:T], row=dims(1) => renamer(["", ""])))
+    w = StatsBase.weights(@. abs(df.μ0) * sqrt(1 - df.μ0^2))
+
+    # Calculate weighted means
+    T_weighted_mean = mean(df.T, w) ± std(df.T, w)
+    t1_weighted_mean = mean(df.t1, w) ± std(df.t1, w)
+
+    # Add horizontal lines for weighted means
+    hlines_measurement!(fg.grid[1, 1].axis, t1_weighted_mean; label="<T_cross>: $(t1_weighted_mean)", color=:blue)
+    hlines_measurement!(fg.grid[2, 1].axis, T_weighted_mean; label="<T>: $(T_weighted_mean)", color=:blue)
+
+    # Add legends
+    axislegend(fg.grid[1, 1].axis)
+    axislegend(fg.grid[2, 1].axis)
+
+    easy_save("Δt_β=$β"; force=false)
+end
+```
 
 ```{julia}
 avg_df = @chain result begin
@@ -288,17 +322,36 @@ avg_df = @chain result begin
     @transform! :w = @. abs(:μ0) * sqrt(1 - :μ0^2)
     @subset :t1 .< DEFAULT_TSPAN[2]
     @groupby(:β, :v)
-    @combine begin
-        :Δs_perp = 0 ± std(:Δs_perp, StatsBase.weights(:w), mean=0)
-        :Δs_para = mean(:Δs_para, StatsBase.weights(:w)) ± std(:Δs_para, StatsBase.weights(:w))
+    @combine @astable begin
+        w = StatsBase.weights(:w)
+        Δs_perp_std = std(:Δs_perp, w; mean=0)
+        Δs_para_std = std(:Δs_para, w)
+        T = mean(:T, w) ± std(:T, w)
+        :T = T
+        :Δs_perp = 0 ± Δs_perp_std
+        :Δs_para = mean(:Δs_para, w) ± Δs_para_std
+        :κ_para = Δs_para_std / T
+        :κ_perp = Δs_perp_std / T
+        :κ_ratio = :κ_perp / :κ_para
     end
+    @rtransform! :κ_ratio = :β == 0 ? :κ_ratio * NaN : :κ_ratio
     sort!(:β)
 end
+
 spec = data(avg_df) * errorbar_visual
-spec *= mapping(:β, [m.Δs_para, m.Δs_perp], row=dims(1) => renamer(["Parallel", "Perpendicular"]))
-spec *= (; color=:v => nonnumeric, dodge_x=:v => nonnumeric)
+renamer1 = renamer(["T", "Perpendicular", "Parallel"])
+gspec = (; color=:v => nonnumeric, dodge_x=:v => nonnumeric)
+spec *= mapping(:β, [:T, m.Δs_perp, m.Δs_para], row=dims(1) => renamer1)
+spec = spec * gspec
 fg = draw(spec, scales(DodgeX=(; width=2)))
-easy_save("Δs_βscan_vscan_weighted")
+easy_save("Δs_βscan_vscan_weighted"; force=true)
+```
+
+```{julia}
+spec = data(avg_df) * mapping(:β, [m.κ_perp, m.κ_para, m.κ_ratio], row=dims(1) => renamer(["Perpendicular", "Parallel", "Ratio"]))
+spec *= errorbar_visual * gspec
+fg = draw(spec, scales(DodgeX=(; width=2)))
+easy_save("κ_βscan_vscan_weighted"; force=true)
 ```
 
 
