@@ -107,8 +107,7 @@ Normalized distance $s_{fs}/l_0$:
 ```{julia}
 include("../src/utils.jl")
 
-s_fs_n = let erg0 = 1u"MeV", s_fs = 4e2u"km/s" * 30u"minute", v′ = 8
-    l0 = 3e3u"km"
+s_fs_n = let l0 = 3e3u"km", s_fs = 4e2u"km/s" * 30u"minute", v′ = 8
     B0 = 10u"nT"
     t0 = Unitful.mp / (Unitful.q * B0) |> upreferred
     v0 = l0 / t0
@@ -122,7 +121,7 @@ end
 config = Dict(
     :θ => 60,
     :β => [0, 10, 30, 60],
-    :v => 8,
+    :v => [8, 16],
     :init_kwargs => (; w=-0.8:0.1:0.8, Nϕ=128)
 )
 all_params = dict_list(config)
@@ -168,7 +167,7 @@ end
 
 ```{julia}
 f = Figure()
-let df = @subset result :β .== 60 :t1 .< DEFAULT_TSPAN[2]
+let df = @subset(result, :β .== 60, :v .== 8, :t1 .< DEFAULT_TSPAN[2])
     d = data(df)
     c = mapping(color=m.μ0_n)
     p1 = draw!(f[1, 1], d * c * s.t_cs_μ0)
@@ -183,12 +182,19 @@ easy_save("Δt")
 
 ```{julia}
 using Statistics
+using StatsBase
 
 errorbar_visual = (visual(ScatterLines) + visual(Errorbars; whiskerwidth=6))
 
+function hlines_measurement!(ax, m::Measurement; label="", kw...)
+    hlines!(ax, m.val; linestyle=:dash, label, kw...)
+    hlines!(ax, m.val + m.err; linestyle=:dot, kw...)
+    hlines!(ax, m.val - m.err; linestyle=:dot, kw...)
+end
+
 begin
     β = 60
-    df = @subset result :β .== β :t1 .< DEFAULT_TSPAN[2]
+    df = @subset(result, :β .== β, :v .== 8, :t1 .< DEFAULT_TSPAN[2])
     # Calculate average values by binning μ0
     avg_df = @chain df begin
         @groupby(:μ0)
@@ -197,7 +203,23 @@ begin
     end
 
     spec = (data(df) * visual(Scatter; markersize=5) + data(avg_df) * errorbar_visual * visual(color=:red))
-    draw(spec * mapping(m.μ0, [m.Δs_para, m.Δs_perp], row=dims(1) => renamer(["", ""])))
+    fg = draw(spec * mapping(m.μ0, [m.Δs_para, m.Δs_perp], row=dims(1) => renamer(["", ""])))
+
+
+    w = StatsBase.weights(@. abs(df.μ0) * sqrt(1 - df.μ0^2))
+
+    # Calculate weighted means
+    Δs_perp_weighted_mean = mean(df.Δs_perp, w) ± std(df.Δs_perp, w)
+    Δs_para_weighted_mean = mean(df.Δs_para, w) ± std(df.Δs_para, w)
+
+    # Add horizontal lines for weighted means
+    hlines_measurement!(fg.grid[1, 1].axis, Δs_para_weighted_mean; label="<Δs_∥>: $(Δs_para_weighted_mean)", color=:blue)
+    hlines_measurement!(fg.grid[2, 1].axis, Δs_perp_weighted_mean; label="<Δs_⊥>: $(Δs_perp_weighted_mean)", color=:blue)
+
+    # Add legends
+    axislegend(fg.grid[1, 1].axis; position=:cb)
+    axislegend(fg.grid[2, 1].axis; position=:ct)
+
     easy_save("Δs_β=$β")
 end
 ```
@@ -209,7 +231,7 @@ import Base: typemax, typemin
 using AlgebraOfGraphics: AesX, AesY, AesColor, Normal, dictionary
 import AlgebraOfGraphics: aesthetic_mapping
 
-typemax(::Type{Measurement{T}}) where T = typemax(T)
+# typemax(::Type{Measurement{T}}) where T = typemax(T)
 typemin(::Type{Measurement{T}}) where T = typemin(T)
 
 aesthetic_mapping(::Type{Errorbars}, ::Normal, ::Normal) = errorbar_mapping(2)
@@ -225,9 +247,8 @@ end
 
 
 ```{julia}
-
 avg_df = @chain result begin
-    @subset :t1 .< DEFAULT_TSPAN[2]
+    @subset :t1 .< DEFAULT_TSPAN[2] :v .== 8
     @groupby(:μ0, :β)
     @combine(
         :Δs_perp = mean(:Δs_perp) ± std(:Δs_perp),
@@ -237,9 +258,28 @@ avg_df = @chain result begin
 end
 
 spec = data(avg_df) * (; group=:β => nonnumeric, color=:β => nonnumeric) * errorbar_visual
-fg = draw(spec * mapping(m.μ0, [m.Δs_para, m.Δs_perp], row=dims(1) => renamer(["", ""])))
-easy_save("Δs_βscan")
+fg = draw(spec * mapping(m.μ0, [m.Δs_para, m.Δs_perp], row=dims(1) => renamer(["Parallel", "Perpendicular"])))
+easy_save("Δs_β_μ0scan")
 ```
+
+```{julia}
+avg_df = @chain result begin
+    @transform! :w = @. abs(:μ0) * sqrt(1 - :μ0^2)
+    @subset :t1 .< DEFAULT_TSPAN[2]
+    @groupby(:β, :v)
+    @combine begin
+        :Δs_perp = mean(:Δs_perp, StatsBase.weights(:w)) ± std(:Δs_perp, StatsBase.weights(:w))
+        :Δs_para = mean(:Δs_para, StatsBase.weights(:w)) ± std(:Δs_para, StatsBase.weights(:w))
+    end
+    sort!(:β)
+end
+spec = data(avg_df) * errorbar_visual
+spec *= mapping(:β, [m.Δs_para, m.Δs_perp], row=dims(1) => renamer(["Parallel", "Perpendicular"]))
+spec *= (; color=:v => nonnumeric, dodge_x=:v => nonnumeric)
+fg = draw(spec, scales(DodgeX=(; width=2)))
+easy_save("Δs_βscan_vscan_weighted")
+```
+
 
 ```{julia}
 f = Figure()
