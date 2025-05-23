@@ -118,15 +118,19 @@ end
 ```
 
 ```{julia}
-config = Dict(
+config = Dict{Any,Any}(
     :θ => 60,
-    :β => [0, 10, 30, 60],
+    :β => [0, 10, 30, 45, 60],
     :v => [8, 16],
     :init_kwargs => (; w=-0.8:0.1:0.8, Nϕ=128)
 )
 all_params = dict_list(config)
 results = produce_or_load.(run_sim, all_params, datadir())
-get_df(d) = d[1]["results"]
+function get_df(res)
+    d = res[1]
+    haskey(d, :results) && return d[:results]
+    haskey(d, "results") && return d["results"]
+end
 result = vcat(get_df.(results)...)
 
 function process_perp!(result)
@@ -268,7 +272,7 @@ avg_df = @chain result begin
     @subset :t1 .< DEFAULT_TSPAN[2]
     @groupby(:β, :v)
     @combine begin
-        :Δs_perp = mean(:Δs_perp, StatsBase.weights(:w)) ± std(:Δs_perp, StatsBase.weights(:w))
+        :Δs_perp = 0 ± std(:Δs_perp, StatsBase.weights(:w), mean=0)
         :Δs_para = mean(:Δs_para, StatsBase.weights(:w)) ± std(:Δs_para, StatsBase.weights(:w))
     end
     sort!(:β)
