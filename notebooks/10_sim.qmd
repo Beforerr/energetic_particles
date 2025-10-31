@@ -1,7 +1,6 @@
 ---
 execute:
   eval: false
-engine: julia
 ---
 
 

@@ -8,6 +8,125 @@ code-links:
     text: Tana
 ---
 
+<!--
+ Physical Review Letters (PRL) 
+ 
+@tennysonChangeAdiabaticInvariant1986
+@zhdankinMagneticDiscontinuitiesMagnetohydrodynamic2012
+-->
+
+## Introduction
+
+
+The total time between two consecutive current sheet encounters is modeled as the sum of the time spent inside the current sheet $T_{cs}$, and the time spent free-streaming between sheets $T_{fs}$, given by:
+
+$$
+T = T_{cs} + T_{fs}, \quad T_{fs} = \frac{s_{fs}}{|v_{∥,1}|}
+$$
+
+where $v_{∥,0}$, $v_{∥,1}$ are the particle's changed parallel velocity before and after interacting with the current sheet, respectively.
+
+In the absence of scattering, the particle would follow the field line and travel a distance:
+
+$$
+s_0 = |v_{∥,0}| \cdot T = |v_{∥,0}| \left( T_{cs} + T_{fs} \right).
+$$
+
+However, when scattering occurs, the total parallel distance traveled relative to the starting point becomes:
+
+$$
+s = \text{Sign} \cdot s_{fs} + \frac{1 + \text{Sign}}{2} s_{cs}^*
+$$
+
+where $\text{Sign} = \text{sign}\left(\frac{v_{∥,1}}{v_{∥,0}}\right)$ equals to $-1$ for particle reflection and $1$ for particle crossing.
+
+Approximately, $T_{fs} \approx s_{fs}/ |v_{∥,1}|$
+
+Under the approximation that $s_{cs}^* << s_{fs}$, where $s_{cs}^*$ is the effective parallel distance the particle travels within the current sheet. The net displacement compared to the unperturbed case is then:
+
+$$
+Δ s_∥ = s - s_0 = s_{fs} \left(\text{Sign} - \frac{|v_{∥,0}|}{|v_{∥,1}|} \right) + \frac{\text{Sign} -1 }{2} s_{cs}^* - |v_{∥,0}| T_{cs}
+$$
+
+This displacement depends on particle initial pitch-angle $\mu_0 = \cos α_0$ and gyrophase $\varphi_0$.
+
+To analyze the average displacement resulting from multiple interactions with a current sheet, we begin by examining how the pitch-angle $\mu=\cos α$ is distributed following successive encounters. 
+
+$$
+P(α) dα = d(\sin^2 α) => P(α) = \sin α |\cos α|
+$$
+
+![](./figures/pa_cdf.png)
+
+This distribution provides a basis for computing the weighted average of both the perpendicular and parallel displacements.
+
+$$
+<Δ s_∥> =  \int Δ s_∥ P(𝐯) d𝐯 = 2π v^2 \int_{0}^{\pi} Δ s_∥ P(α) \sin α dα = 2π v^2 \int_{0}^{\pi} Δ s_∥ |\cos α| \sin^2 α dα
+$$
+
+Given $\mu=\cos α$, we have:
+
+$$
+\int_{0}^{\pi} Δ s_∥ |\cos α| \sin^2 α dα = \int_{-1}^{1} Δ s_∥ |\mu| \sqrt{1-\mu^2} d\mu
+$$
+
+For discrete samples $\mu_i$, we have:
+
+$$
+\overline{Δ s_∥} =  \sum_i w_i Δ s_{∥,i}  / \sum w
+$$
+
+where $w_i = |\mu_i| \sqrt{1-\mu_i^2}$.
+
+Current sheets of left-hand or right-hand polarity have symmetry in perpendicular displacements.
+
+Assuming that both occur with equal probability, due to this symmetry, the net average perpendicular transport vanishes, yielding a mean perpendicular displacement of zero. 
+
+This polarity does not influence the parallel displacement.
+
+$$
+\overline{Δ s_⊥} = 0
+$$
+
+
+![](./figures/Δt_β=60.png)
+
+![](./figures/Δs_β=60.pdf)
+
+![](./figures/Δs_βscan_vscan_weighted.pdf)
+
+![](./figures/κ_βscan_vscan_weighted.pdf)
+
+The parallel spatial diffusion coefficient is then expressed as:
+
+$$
+κ_∥ = \sqrt{\frac{1}{\sum{w}} \sum_{i=1}^n {w_i  \frac{(Δ s_{∥,i} - \overline{Δ s_∥})^2}{T_i} }}
+$$
+
+Similarly, for the perpendicular direction:
+
+$$
+κ_⊥ = \sqrt{\frac{1}{\sum{w}} \sum_{i=1}^n {w_i  \frac{(Δ s_{⊥,i} - \overline{Δ s_⊥})^2}{T_i} }}
+$$
+
+where $T_i = T_{cs, i} + | s_{fs} / v_{∥,1,i} |$.
+
+
+$l_0 =3 \times 10^3 \text{ km}$
+
+$κ_0 = l_0^2 / t_0 \approx 10^7 \text{ km}^2 \text{ s}^{-1}$
+
+The standard deviations of both parallel and perpendicular displacements increase with the shear angle. Notably, the perpendicular standard deviation is more strongly influenced by the ratio of the particle gyroradius to the current sheet thickness, indicating a greater sensitivity to the scale of the magnetic structure relative to the particle’s gyro-motion.
+
+## Conclusions
+
+
+$$
+\mathbf{B} = B (\cos θ \ \mathbf{e_z} + \sin θ ( \sin φ(z) \ \mathbf{e_x} + \cos φ (z) \ \mathbf{e_y}))
+$$
+
+
+
 keV up to GeV
 
 - acceleration

@@ -1,5 +1,6 @@
 project:
-  type: website
+  # type: website
+  type: manuscript
   title: "Energetic Particles"
   
 website:
@@ -14,3 +15,6 @@ bibliography:
   - files/bibliography/research.bib
 
 wrap: preserve
+
+engines:
+  - julia

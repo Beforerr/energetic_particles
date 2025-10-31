@@ -9,3 +9,7 @@ ensure-env:
 
 render:
     quarto render prep.qmd --to pptx
+
+preview:
+    julia --project=. -e 'using Pkg; Pkg.resolve()'
+    quarto preview
