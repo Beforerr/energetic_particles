@@ -11,9 +11,18 @@ code-links:
 <!--
  Physical Review Letters (PRL) 
  
-@tennysonChangeAdiabaticInvariant1986
-@zhdankinMagneticDiscontinuitiesMagnetohydrodynamic2012
+- @tennysonChangeAdiabaticInvariant1986
+- @zhdankinMagneticDiscontinuitiesMagnetohydrodynamic2012
+- @liEffectCurrentSheets2011
 -->
+
+<!-- References
+- @cuestaDistinctSolarEnergetic2025
+- @malovaEvidenceQuasiadiabaticMotion2016: Evidence for quasi-adiabatic motion of charged particles in strong current sheets in the solar wind
+- @zhaoDetectionSmallMagnetic2021: Detection of small magnetic flux ropes from the third and fourth parker solar probe encounters
+- @pezziCurrentSheetsPlasmoids2021: Current sheets, plasmoids and flux ropes in the heliosphere
+- @tanAlternativeInterpretationImpulsive2020: An alternative interpretation of impulsive SEP events occurring on 1999 january 9–10
+ -->
 
 ## Introduction
 
