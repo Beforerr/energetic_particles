@@ -9,6 +9,21 @@
 ### Particle reservoirs
 
 
+## Long-term behavior
+
+$$
+\partial_t f(μ, t) = \int \big[ W(μ \mid μ') f(μ',t) - W(μ' \mid μ) f(μ, t) \big] , dμ'
+$$
+
+where $W$ is the jump *rate* from $μ' \to μ$. If you can estimate $W$ on a grid from the test particles, you can evolve **that** PDE (it’s just a matrix ODE after discretization). That’s the cleanest “physicsy” way to study long-term behavior of nonlocal scattering.
+
+Steps:
+
+1. bin $μ$
+2. count jumps from bin $j \to k$ per unit time → that’s $W_{kj}$
+3. form operator $L_{kj} = W_{kj} - \delta_{kj} \sum_\ell W_{\ell j}$
+4. integrate (\dot f = L f) or just find its steady state (nullspace)
+
 ## Parallel diffusion
 
 @chenParallelDiffusionCoefficient2024
@@ -17,4 +32,47 @@
 
 $$
 κ_{\|}=(5.16 \pm 1.22) \times 10^{18} r^{1.17 \pm 0.08} E^{0.71 \pm 0.02}\left(\mathrm{~cm}^2 \mathrm{~s}^{-1}\right)
+$$
+
+## Displacement relative to field line
+
+A magnetic field line satisfies
+$$
+\frac{d\mathbf r}{ds} \parallel \mathbf B(\mathbf r)
+$$
+
+and since $\mathbf B$ depends only on $z$, we can use $z$ itself as the parameter — **provided $B_z \neq 0$** (i.e. $\theta \neq 90^\circ$). That’s the usual trick.
+
+So for a field line:
+$$
+\frac{dx}{dz} = \frac{B_x(z)}{B_z}, \qquad
+\frac{dy}{dz} = \frac{B_y(z)}{B_z}, \qquad
+\frac{dz}{dz} = 1.
+$$
+
+Plug in the components:
+
+$$
+\frac{dx}{dz} = \frac{B \sin\theta , \sin(\beta \tanh z)}{B \cos\theta}
+= \tan\theta , \sin(\beta \tanh z),
+$$
+
+$$
+\frac{dy}{dz} = \frac{s, B \sin\theta , \cos(\beta \tanh z)}{B \cos\theta}
+= s , \tan\theta , \cos(\beta \tanh z),
+$$
+
+$$
+\frac{dz}{dz} = 1.
+$$
+
+So a field line passing through $(x_0, y_0, z_0)$ is
+$$
+x(z) = x_0 + \tan\theta \int_{z_0}^{z} \sin(\beta \tanh \zeta), d\zeta,
+$$
+$$
+y(z) = y_0 + s , \tan\theta \int_{z_0}^{z} \cos(\beta \tanh \zeta), d\zeta,
+$$
+$$
+z = z.
 $$

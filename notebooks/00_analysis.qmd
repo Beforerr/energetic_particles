@@ -60,8 +60,7 @@ axislegend(ax, position=:rt)
 f
 ```
 
-
-
+## Long-term behavior of pitch angle distribution
 
 
 ## Parallel diffusion
