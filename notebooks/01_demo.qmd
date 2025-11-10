@@ -1,0 +1,133 @@
+
+
+## Schematic diagram of particle motion in a representative magnetic field profile
+
+A diagram illustrating a representative magnetic field profile and representative particle trajectories in the test particle simulations, along with the key parameters used in the model. 
+
+```{julia}
+using CurrentSheetTestParticle
+
+sols, (wϕs, B) = let θ = 85, v = 8, β = 75, w = -0.9, ϕ = (2.85, 2.87, 2.89)
+    init_kwargs = (; w, ϕ)
+    diffeq = (; dtmax=1e-3, CurrentSheetTestParticle.DEFAULT_DIFFEQ_KWARGS...)
+    solve_params(RDProblemParams(; θ, β, v, init_kwargs, diffeq))
+end;
+```
+
+```{julia}
+idxs = (1, 2, 3)
+# Plot trajectories with guiding centers and field lines.
+fig = Figure()
+
+ax = Axis3(fig[1, 1], aspect=:data)
+
+sol = sols[1]
+start_point_coords = sol.u[1][1:3] # Get x,y,z of the first point
+scatter!(ax, Point3f(start_point_coords); marker=:star5, markersize=15, color=Makie.wong_colors()[end-1]) # Plot the star
+
+traj_label(i, μ0, μ1, ϕ0) = "T$(i): ϕ₀=$(round(ϕ0, digits=1))°, cos(α₁)=$(round(μ1, digits=1))"
+@views for (sol, (w0, ϕ0_rad), i) in zip(sols, wϕs, 1:length(sols))
+    ϕ0_deg = rad2deg(ϕ0_rad)
+    μ1 = CurrentSheetTestParticle.cos_pitch_angle(sol.u[end], B)
+    label = traj_label(i, w0, μ1, ϕ0_deg)
+    lines!(ax, sol[1, :], sol[2, :], sol[3, :]; label=label)
+end
+
+axislegend(L"\text{Trajectories: } v_p = %$(v) v_B\ ,\ \cos(α_0)=%$(w)", position=(0.05, 0.8))
+
+sol = sols[end]
+fl0_sol, fl1_sol = field_lines(sol, B; dtmax=1)
+fl0 = lines!(fl0_sol; idxs, color=:black)
+fl1 = lines!(fl1_sol; idxs, color=:gray)
+
+axislegend(ax, [fl0, fl1], ["Initial", "Final (ϕ₀=$(round(rad2deg(ϕ[end]), digits=1))°)"], L"\text{Field Lines: } θ = %$(θ)^∘,\ β = %$(β)^∘", position=(0.9, 0.8))
+
+xlims!(ax, -290, 50)
+ylims!(ax, -120, 130)
+fig
+
+# plot_trajectory(sol)
+```
+
+## Long-term behavior
+
+```{julia}
+using CurrentSheetTestParticle
+using CurrentSheetTestParticle.Analysis
+using CurrentSheetTestParticle: inverse_v
+using TestParticleAnalysis
+using Beforerr
+using GLMakie
+includet("../src/utils.jl")
+includet("../src/plot.jl")
+tspan = (0, 2048.)
+save_everystep = false
+verbose = false
+dtmax = 1e-1
+diffeq = (; save_everystep, verbose, dtmax, tspan)
+```
+
+```{julia}
+p = RDProblemParams(
+    # θ=85, β=45, v=64.0, init_kwargs=(; Nw=180, Nϕ=240)
+    θ=85, β=45, v=64.0, init_kwargs=(; Nw=180, Nϕ=120)
+)
+sols, (wϕs, B) = solve_params(p; diffeq...)
+results = process_sols(p, sols, wϕs)
+
+p3 = RDProblemParams(
+    θ=60, β=60, v=8.0, init_kwargs=(; Nw=180, Nϕ=120)
+)
+sols3, (wϕs3, B3) = solve_params(p3; diffeq...)
+results3 = process_sols(p3, sols3, wϕs3)
+
+results2 = let p = RDProblemParams(
+        θ=85, β=60, v=64.0, init_kwargs=(; Nw=180, Nϕ=120)
+    )
+    sols, (wϕs, B) = solve_params(p; diffeq...)
+    process_sols(p, sols, wϕs)
+end
+
+p4 = RDProblemParams(
+    θ=60, β=60, v=0.5, init_kwargs=(; Nw=180, Nϕ=120)
+)
+sols4, (wϕs4, B4) = solve_params(p4; diffeq...)
+results4 = process_sols(p4, sols4, wϕs4)
+```
+
+```{julia}
+f = Figure(;)
+plot_pitch_angle_cdf(f[1, 1], results; n=5, add_stationary_distribution=true)
+plot_pitch_angle_cdf(f[2, 1], results2; n=5)
+plot_pitch_angle_cdf(f[3, 1], results3; n=5)
+plot_pitch_angle_cdf(f[4, 1], results4; n=100)
+easy_save("pa_cdf")
+```
+
+### Parallel transport
+
+```{julia}
+using TestParticleAnalysis.ParallelTransport
+
+tm = transition_matrix(results)
+
+let t = 10000, v = 10, l0 = 100
+    M = size(tm, 1)
+    mu = tm.dims[1].val
+    Psi(λ, μ) = exp(-λ * l0 / (v * abs(μ)))
+    @info msd(t, tm', v, Psi)
+    @info msd(2t, tm', v, Psi)
+    @info msd(3t, tm', v, Psi)
+    @b msd(t, tm', v, Psi)
+end
+```
+
+```{julia}
+# calculate the moments of the distribution
+let jumps = s2α_jumps
+    diffs = jumps .- jumps[1, :]'
+    m1 = mean(diffs, dims=2)
+    m2 = mean(diffs .^ 2, dims=2) - m1 .^ 2
+    scatterlines(vec(m2))
+end
+```

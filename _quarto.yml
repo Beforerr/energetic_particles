@@ -1,8 +1,8 @@
 project:
-  # type: website
-  type: manuscript
+  type: website
+  # type: manuscript
   title: "Energetic Particles"
-  
+
 website:
   sidebar:
     contents: auto
@@ -10,6 +10,9 @@ website:
     left:
       - text: "Home"
         href: index.qmd
+
+manuscript:
+  article: index.qmd
 
 bibliography:
   - files/bibliography/research.bib

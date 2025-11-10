@@ -12,3 +12,5 @@ overleaf/
 data/
 
 Manifest.toml
+
+**/*.quarto_ipynb

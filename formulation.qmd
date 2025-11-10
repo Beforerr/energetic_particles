@@ -1,0 +1,453 @@
+---
+format:
+  typst:
+    documentclass: article
+---
+
+# Semi-Markov / CTRW formulation
+
+<!-- I'm trying to study the parallel displacement of energetic particles due to interaction with current sheets. The typical interaction is not diffusive and pitch angle goes through jumps. How to study the long-term behavior for particles interact with an ensemble of current sheets?  -->
+
+Assumptions:
+
+- The pitch angle scattering is Markovian with transition matrix $P$: $P_{ji} = P(\mu_j|\mu_i)$.
+- The spacings between sheet encounters follow a PDF $p(l)$ (time to next sheet encounter $τ$ thus depends on  pitch-angle cosine $μ$)
+- Particle is moving ballistically between sheets (state-dependent flight time)
+- The interaction time is short compared to the flight time (so the following is an upper bound of the parallel displacement)
+
+---
+
+## Velocity-jump / Lévy-walk–type process
+
+## 1. Model (discrete μ states)
+
+Discretize pitch-angle cosine $μ$ into states $i=1,\dots,M$.
+
+At the **start of a flight** in state $i$:
+
+* Velocity along $z$: $v_i = v \mu_i$.
+* Flight time (to next sheet): random with PDF $\psi_i(\tau)$.
+* Survival: $\Phi_i(t) = 1 - \int_0^t \psi_i(u) du.$
+* At the end of the flight, choose new state $j$ with probability $P_{ji} = P(\mu_j|\mu_i)$.
+
+We start at $t=0$, $z=0$, with internal state drawn from stationary $\pi$ of $P$: $\pi_j = \sum_i P_{ji}\pi_i.$
+
+## 2. Arrival density equation
+
+Define $J_i(z,t)$ as the probability density that a *new* flight in state $i$ starts at position $z$ and time $t$. The initial condition is $J_i(z,0) = \pi_i \delta(z) \delta(t).$
+
+Renewal step: To start a flight in state $i$ at $(z,t)$ from a previous starting point in state $j$ at $(z', t')$ ,
+
+* Flown for duration $\tau = t - t'$ with velocity $v \mu_j$,
+* Landed at $z = z' + v \mu_j \tau$,
+* Then switched to state $i$ with probability $P_{ij}$.
+
+So the kernel from $(j, z', t')$ to $(i, z, t)$ is:
+
+$$
+\phi_{ij}(z, t, z', t') = 
+\phi_{ij}(z - z', t - t')
+= P_{ij} \psi_j(t - t')
+\delta \big(z - z' - v \mu_j(t - t')\big).
+$$
+
+Thus
+
+$$
+J_i(z,t) = J_i(z,0) + \sum_j \int_0^t dt'\int_{-\infty}^{\infty} dz'
+  \phi_{ij}(z - z', t - t') J_j(z',t').
+$$
+
+## 3. Occupation probability
+
+Define $f_i(z,t)$ as the probability density that the particle is at $(z,t)$ and currently in flight with state $i$.
+
+If a flight in state $i$ started at $(z',t')$, the particle is still in that flight at time $t$ if no collision has occurred in time $u=t-t'$, with probability $\Phi_i(u)$, and its position then is $z = z' +  v \mu_i u$.
+
+So:
+
+$$
+f_i(z,t)
+= \int_0^t dt'\int_{-\infty}^{\infty} dz'
+J_i(z',t')
+\Phi_i(t - t')
+\delta \big(z - z' - v_i(t - t')\big).
+$$
+
+Total position PDF: $f(z,t) = \sum_i f_i(z,t)$.
+
+As the quations are convolutions in time and space, we can use Fourier-Laplace transform to solve them.
+
+## 4. Fourier–Laplace transform: derive $\hat{\tilde F}(k,s)$
+
+Define transforms (Fourier in $z$, Laplace in $t$):
+
+$$
+\tilde{J}_i(k,s) = \int_0^\infty dt e^{-st}\int dz e^{ikz}J_i(z,t),
+$$
+$$
+\tilde{F}_i(k,s) = \int_0^\infty dt e^{-st}\int dz e^{ikz}f_i(z,t),
+$$
+$$
+\hat{\tilde F}(k,s) = \sum_i \tilde{F}_i(k,s).
+$$
+
+### 4.1 Transform the renewal equation
+
+The kernel $\phi_{ij}$ after transform:
+
+$$
+\tilde\phi_{ij}(k,s)
+= \int_0^\infty d\tau\int dz
+e^{ikz - s\tau}
+P_{ij}\psi_j(\tau)
+\delta(z - v_j\tau)
+= P_{ij}\int_0^\infty d\tau \psi_j(\tau) e^{-(s - ikv_j)\tau}.
+$$
+
+So:
+
+$$
+\tilde\phi_{ij}(k,s)
+= P_{ij}\tilde\Psi_j(s - ikv_j)
+$$
+
+with $\tilde\Psi_j(u) = \int_0^\infty e^{-u\tau}\psi_j(\tau) d\tau$
+
+The renewal equation after transform:
+
+$$
+\tilde{J}_i(k,s)
+= \pi_i + \sum_j \tilde\phi_{ij}(k,s)\tilde{J}_j(k,s).
+$$
+
+Then vectorially:
+
+$$
+{\mathbf{\tilde J}}(k,s)
+= [I - \tilde\phi(k,s)]^{-1}\boldsymbol{\pi}.
+$$
+
+
+### 4.2 Transform the occupation formula
+
+Transform $f_i$ :
+
+$$
+\tilde{F}_i(k,s)
+= \int_0^\infty dt e^{-st}\int_0^t dt'\int dz'
+J_i(z',t')
+\Phi_i(t - t')
+e^{ik(z'+v_i(t - t'))}.
+$$
+
+After some algebra, we get:
+
+$$
+\tilde{F}_i(k,s)
+= \tilde{J}_i(k,s) \tilde{\Phi}_i(s - ikv_i).
+$$
+
+Taking Laplace transforms, we can prove that
+
+$$
+\tilde\Phi_i(u) = \frac{1 - \tilde\Psi_i(u)}{u},
+$$
+
+
+Define diagonal matrix
+
+$$
+D_{ii}(k,s)
+= \tilde\Phi_i(s - ikv_i)
+= \frac{1 - \tilde\Psi_i(s - ikv_i)}{s - ikv_i}.
+$$
+
+Then vectorially:
+$$
+{\mathbf{\tilde F}}(k,s)
+= D(k,s){\mathbf{\tilde J}}(k,s)
+= D(k,s)[I - \tilde\phi(k,s)]^{-1}{\mathbf{\pi}}.
+$$
+
+Finally sum over states:
+$$
+\boxed{
+\hat{\tilde F}(k,s)
+= \mathbf{1}^\top D(k,s)[I - \tilde\phi(k,s)]^{-1}\boldsymbol{\pi}.
+}
+$$
+
+## Mean-square displacement
+
+The mean-square displacement (MSD) is
+
+$$
+\langle \Delta z^2(t)\rangle
+= \int_{-\infty}^{\infty} z^2 f(z,t)dz
+$$
+
+So the Laplace transform of the MSD is
+
+$$
+\tilde M_2(s) := \int_0^\infty e^{-st}\langle \Delta z^2(t)\rangle dt 
+= -\left.\frac{\partial^2 F(k,s)}{\partial k^2}\right|_{k=0}
+$$
+
+So the mean-square displacement after inverse Laplace transform is
+
+$$
+\langle \Delta z^2(t)\rangle
+= \mathcal{L}^{-1}\left\{\tilde M_2(s)\right\}
+= \int_0^\infty e^{-st}\tilde M_2(s) ds
+$$
+
+## 5. Constant spacing
+
+For simplicity, assume constant spacing: let the sheet separation be a fixed $l_0$.
+
+So the waiting-time PDF is a Dirac delta $\psi_i(\tau) = \delta(\tau - \tau_i)$.
+
+# Taylor–Green–Kubo formulation
+
+## 1. Core identity
+
+Parallel displacement is the time integral of $v_\parallel$: $\Delta z(t) = z(t) - z(0) = \int_0^t v_\parallel(t') dt' = v\int_0^t \mu(t') dt'$.
+
+So, for any dynamics of $\mu(t)$,
+
+$$
+\langle \Delta z^2(t)\rangle
+= v^2\left\langle \left(\int_0^t \mu(t') dt'\right)^2\right\rangle.
+$$
+
+If $\mu(t)$ is stationary,
+
+$$
+\langle \Delta z^2(t)\rangle
+= 2v^2\int_0^t (t-\tau)C(\tau) d\tau,
+\quad
+C(\tau) = \langle \mu(0)\mu(\tau)\rangle.
+$$
+
+
+## 2. Discrete μ + μ-dependent waiting times
+
+Assumptions for clarity (all match what we’ve discussed):
+
+* Discretize pitch-angle cosine into states (i=1,\dots,M) with values (\mu_i).
+
+* Embedded Markov chain at sheet encounters:
+  [
+  P_{ji} = P(\mu_j|\mu_i),
+  \quad \sum_j P_{ji}=1.
+  ]
+
+* Fixed sheet spacing (\ell_0) (easy to generalize).
+
+* For a segment starting just after sheet (n) in state (i):
+
+  * Waiting time:
+    [
+    \tau_i = \frac{\ell_0}{v|\mu_i|}.
+    ]
+  * Parallel step:
+    [
+    \Delta z = \operatorname{sgn}(\mu_i),\ell_0.
+    ]
+
+* Let (\pi) be the stationary distribution of the **embedded** Markov chain:
+  [
+  \pi = P,\pi,\quad \sum_i \pi_i=1.
+  ]
+
+We consider trajectories that start at an encounter with (\mu_0) drawn from (\pi).
+
+Key point about “accumulative”:
+
+* Every step is (\pm \ell_0) along **the same z-axis**.
+* There is no geometric projection factor, only the sign from (\mu_i).
+* That’s why we can treat this as a 1D signed random walk in z.
+
+---
+
+## 3. Use the proven CTRW formula and differentiate
+
+We already proved (for this discrete semi-Markov setup) that the Fourier–Laplace transform of the z-PDF is
+
+$$
+\hat{\tilde F}(k,s)
+= \frac{1}{s}
+\mathbf{1}^\top
+\big[I - B(s)\big]
+\big[I - A(k,s)\big]^{-1}
+\boldsymbol{\pi},
+$$
+
+where:
+
+* $B(s)$ is diagonal with
+  $$
+  B_{ii}(s) = \Psi_i(s)
+  = e^{-s\tau_i};
+  $$
+* $A(k,s)$ has elements
+  $$
+  A_{ji}(k,s)
+  = P_{ji},\Lambda_i(k,s),
+  $$
+  and for our simple step:
+  $$
+  \Lambda_i(k,s)
+  = e^{ik,\text{sgn}(\mu_i)\ell_0 - s\tau_i}.
+  $$
+
+By definition,
+
+$$
+\tilde M_2(s)
+:= \mathcal{L}{\langle\Delta z^2(t)\rangle}(s)
+= -\left.\frac{\partial^2}{\partial k^2}
+\hat{\tilde F}(k,s)\right|_{k=0}.
+$$
+
+Now do that derivative explicitly.
+
+### Step 1: derivatives of A(k,s)
+
+For each state (i):
+
+[
+\Lambda_i(0,s) = e^{-s\tau_i} = \Psi_i(s),
+]
+[
+\Lambda_i'(0,s)
+= \left.\frac{\partial}{\partial k}\right|_{0}
+e^{ik\sigma_i\ell_0 - s\tau_i}
+= i\sigma_i\ell_0 \Psi_i(s),
+]
+[
+\Lambda_i''(0,s)
+= -\ell_0^2 \Psi_i(s),
+]
+with (\sigma_i = \text{sgn}(\mu_i)).
+
+So
+
+[
+A(0,s) = P,\mathrm{diag}(\Psi_i),
+]
+[
+A'(0,s) = P,\mathrm{diag}(i\sigma_i\ell_0 \Psi_i),
+]
+[
+A''(0,s) = P,\mathrm{diag}(-\ell_0^2 \Psi_i).
+]
+
+### Step 2: derivatives of ((I-A)^{-1})
+
+Let
+[
+X(k,s) = [I - A(k,s)]^{-1}.
+]
+
+Then (standard matrix calculus):
+
+[
+X'(k,s) = X A' X,
+]
+[
+X''(k,s) = X A'' X + 2 X A' X A' X.
+]
+
+All products are matrix products.
+
+### Step 3: differentiate F̂(k,s)
+
+We have
+[
+\hat{\tilde F}(k,s)
+= \frac{1}{s},\mathbf{1}^\top (I - B) X(k,s) \pi,
+]
+and (B) does not depend on (k).
+
+So
+
+[
+\frac{\partial^2}{\partial k^2}\hat{\tilde F}(k,s)
+= \frac{1}{s},\mathbf{1}^\top (I - B) X''(k,s) \pi.
+]
+
+Evaluate at (k=0):
+
+[
+\left.\frac{\partial^2}{\partial k^2}\hat{\tilde F}(k,s)\right|*{0}
+= \frac{1}{s},\mathbf{1}^\top (I - B)
+\left[
+X A'' X + 2 X A' X A' X
+\right]*{k=0}
+\pi.
+]
+
+Therefore
+
+[
+\boxed{
+\tilde M_2(s)
+= -\frac{1}{s},
+\mathbf{1}^\top (I - B(s))
+\left[
+X(0,s) A''(0,s) X(0,s)
+
+* 2 X(0,s) A'(0,s) X(0,s) A'(0,s) X(0,s)
+  \right]
+  \pi.
+  }
+  ]
+
+That’s the **exact** Laplace transform of (\langle\Delta z^2(t)\rangle) for this model.
+
+Every symbol is something you know from your physics:
+
+* (P) from your measured (P(\mu'|\mu)),
+* (\mu_i) (and thus (\sigma_i)),
+* (\tau_i = \ell_0/(v|\mu_i|)),
+* (\pi) stationary for (P).
+
+To get (\langle\Delta z^2(t)\rangle) at a given time, you invert (\tilde M_2(s)) numerically in (s); to get asymptotics, look at small-(s).
+
+---
+
+## 4. Where the “accumulative” property shows up
+
+Two crucial places:
+
+1. **Form of Λᵢ(k,s)**
+
+   Because each step in (z) is exactly (\pm \ell_0) (no geometry), we have:
+
+   [
+   \Lambda_i(k,s) = e^{ik\sigma_i\ell_0 - s\tau_i}.
+   ]
+
+   There is no dependence on some orientation vector; just a sign. That makes
+   (A'(0,s)) and (A''(0,s)) extremely simple.
+
+2. **No projection / dilution**
+
+   In perpendicular transport, random orientations mean vector contributions partly cancel directionally; you had to track a 2D (or tensor) structure.
+
+   Here:
+
+   * Every (\Delta z_n) lies on the same axis.
+   * So all the correlations in (\mathrm{sgn}(\mu_n)) directly feed into (\langle\Delta z^2\rangle).
+   * That’s exactly why the MSD and κ∥ can be written purely in terms of:
+
+     * the μ-Markov chain eigenstructure,
+     * the μ-dependent waiting times,
+     * and the fixed step length (\ell_0).
+
+If you’d like, I can now:
+
+* collapse that Laplace-space formula to the simpler Green–Kubo-like expression for κ∥,
+* or write the explicit eigenmode expression (sum over eigenvalues of (P)) so you can see (\langle\Delta z^2(t)\rangle) as a sum of exponentials in (t).

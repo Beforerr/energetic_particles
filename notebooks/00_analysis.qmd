@@ -65,6 +65,14 @@ f
 
 ## Parallel diffusion
 
+```{julia}
+using TestParticleAnalysis
+dir = "data/example"
+df = get_result(; dir)
+```
+
+### Compare with Observed Parallel Diffusion Coefficient
+
 @chenParallelDiffusionCoefficient2024
 
 ```{julia}

@@ -278,6 +278,8 @@ begin
 end
 ```
 
+![](../figures/Δs_β=60.pdf)
+
 
 ```{julia}
 begin
@@ -386,6 +388,8 @@ begin
     easy_save("κ_s_free_stream")
 end
 ```
+
+![](../figures/κ_s_free_stream.png)
 
 ## Unperturbed trajectory
 
