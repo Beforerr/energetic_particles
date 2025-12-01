@@ -1,22 +1,39 @@
 [deps]
+Accessors = "7d9f7c33-5ae7-4f3b-8dc6-eff91059b697"
 AlgebraOfGraphics = "cbdf2221-f076-402e-a563-3d30da359d67"
+Arrow = "69666777-d1a9-59fb-9406-91d4454c9d45"
 Beforerr = "49aed396-608e-4c3f-b6d6-a749216c9ea7"
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+CurrentSheetObservations = "f641fb44-98b9-4510-9eaa-a0c0d498a7da"
 CurrentSheetTestParticle = "70b924fa-544d-466c-bf9c-e2ef4b9a84d3"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DataFramesMeta = "1313f7d8-7da2-5740-9ea0-a2ca25f37964"
 DimensionalData = "0703355e-b756-11e9-17c0-8b28908087d0"
+Discontinuity = "b54b658d-ecbf-47cc-8c7f-673f5d2a4b30"
+DrWatson = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
+FieldViews = "ff5a1669-b1f2-423e-bbd7-b7fa0f7e0224"
 GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
 JumpProcessesPDF = "312d1462-dd19-4a74-a9fa-fc162eafa436"
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 Match = "7eb4fadd-790c-5f42-8a69-bfa0b872bfbf"
 Measurements = "eff96d63-e80a-5855-80a2-b1b0885c5ab7"
+OhMyThreads = "67456a42-1dca-4109-a031-0a68de7e3ad5"
+ParticlesTransport = "1d91baf6-7604-487b-a9c5-de701772b20b"
 QuadGK = "1fd47b50-473d-5c70-9696-f719f8f3bcdc"
+Static = "aedffcd0-7271-4cad-89d0-dc628f76c6d3"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 TestParticleAnalysis = "190ac06d-205a-4ff8-8d50-56c31c2b86b9"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
 UnitfulAstro = "6112ee07-acf9-5e0f-b108-d242c714bf9f"
+zhangEvolutionSolarWind2025 = "04ab89e6-3e6d-4d11-b58f-fda45054b199"
 
 [sources]
+Beforerr = {path = "/Users/zijin/.julia/dev/Beforerr"}
+CurrentSheetObservations = {path = "../CurrentSheetObservations"}
 CurrentSheetTestParticle = {path = "../CurrentSheetTestParticle"}
+Discontinuity = {path = "/Users/zijin/.julia/dev/Discontinuity"}
+JumpProcessesPDF = {path = "../CurrentSheetTestParticle/lib/JumpProcessesPDF"}
+ParticlesTransport = {path = "lib/ParticlesTransport"}
 TestParticleAnalysis = {path = "../CurrentSheetTestParticle/TestParticleAnalysis"}
+zhangEvolutionSolarWind2025 = {path = "../psp_conjunction/lib/zhangEvolutionSolarWind2025"}

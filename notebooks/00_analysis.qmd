@@ -68,28 +68,6 @@ dir = "data/example"
 df = get_result(; dir)
 ```
 
-### Compare with Observed Parallel Diffusion Coefficient
-
-@chenParallelDiffusionCoefficient2024
-
-```{julia}
-"""
-where r and E are in the units of au and keV, respectively.
-"""
-function κ_parallel(r::Integer, E::Real, ::Val{Chen24})
-    # Coefficients from the formula
-    kappa_base = 5.16e18 * u"cm^2/s"     # Base value of kappa
-    kappa_error = 1.22e18 * u"cm^2/s"    # Uncertainty in kappa base value
-    r_exponent = 1.17
-    r_exponent_error = 0.08    # Uncertainty in r exponent
-    E_exponent = 0.71
-    E_exponent_error = 0.02    # Uncertainty in E exponent
-    return kappa_base * r^r_exponent * E^E_exponent
-end
-
-κ_parallel(r::Integer, E::Energy, ::Val{Chen24}) = κ_parallel(r, NoUnits(E / u"keV"), Val(Chen24))
-```
-
 
 ## Perpendicular diffusion
 
@@ -212,6 +190,8 @@ plot_diffusion(df)
 plot_diffusion(df; add_perp=false)
 easy_save("para_diffusion")
 ```
+
+![](../figures/para_diffusion.png)
 
 ```{julia}
 plot_diffusion(df_me)

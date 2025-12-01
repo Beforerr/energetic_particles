@@ -28,6 +28,44 @@ code-links:
  -->
 ```
 
+The transport of energetic particles is strongly influenced by the turbulent magnetic field of the solar wind [@effenbergerOpenIssuesNongaussian2025]. Beyond simple magnetic fluctuations, solar-wind turbulence contains a variety of coherent structures, including current sheets, Alfvénic vortices, and flux ropes. The classical theory of particle scattering and transport is based on consideration of an ensemble of random magnetic field fluctuations, whereas the internal structure of such fluctuations has not been studied in detail. Understanding particle transport within these coherent structures is essential for clarifying the mechanisms governing particle transport in the heliosphere. Building on our previous investigation of pitch-angle scattering in the presence of current sheets, this work focuses on characterizing the parallel and perpendicular transport of particles due to interactions with current sheets.
+
+Traditionally, parallel diffusion has been attributed to pitch-angle scattering. Most transport models treat this process as diffusive, modeling pitch-angle evolution through a pitch-angle diffusion coefficient. However, in the presence of current sheets when the gyroradius becomes comparable to the local magnetic field curvature radius, the adiabatic invariance of particles (magnetic momentum) may experience a violation and particles would have significant pitch angle change (jumps), leading to rapid particle mixing in pitch angles. In particular, interactions with current sheets can induce non–small-pitch-angle jumps, which cannot be adequately described by standard diffusive approaches.
+
+For perpendicular transport, it is often assumed that field-line random walk dominates cross-field motion in the limit of slowly varying perturbation terms [@shalchiNonlinearCosmicRay2009] as the magnetic field is typically smooth on scales comparable to SEP gyro-radii. However, this assumption would likely fall also near the current sheets where  the magnetic field becomes highly inhomogeneous, often varying on scales similar to or smaller than the gyro-radius. Particles are demagnetized with guiding center illly defined. Significant cross–field displacements can occur and particles may jump from one magnetic field line to another, resulting in substantially enhanced perpendicular transport even in the absense of field line random walks.
+
+Past test-particle simulations often assumes a simplified magnetic field configuration which may not be representative of the real magnetic field with localized intermittency. 
+This study aims to bridge that gap by providing a detailed analysis and quantification of particle transport due to their interactions with current sheets. We incorporates realistic statistical parameters derived from solar wind observations at 1 AU and investigate the evolution of particle transport with an ensemble of current sheets and we study the statistical long-term behavior of particle transport across different particle energies.
+
+The paper is organized as follows. First, we describe the key parameters of current sheets relevant to our simulations. Next, we perform test-particle simulations to examine the transport of energetic particles under different magnetic field configurations. We then analyze observational data from the Wind spacecraft at 1 AU to investigate the statistical behavior of the particle population. Using these results, we calculate the parallel and perpendicular displacements associated with interactions with current sheets. Finally, we conduct large-scale Monte Carlo simulations to characterize the collective transport behavior and derive the effective diffusion coefficients of energetic particles at 1 AU.
+
+
+<!-- In field line random walk (FLRW) theory we describe the statistics of magnetic field lines in magnetohydrodynamic (MHD) turbulence. The most important application is the theory of perpendicular transport of energetic particles where it has been shown in the past that the field line diffusion coefficient directly impacts the particle motion (see, e.g., Webb et al. (2006), Shalchi (2010), Shalchi (2019), Shalchi (2020b), and Shalchi (2021b)). -->
+
+
+## Magnetic Field Configuration
+
+We assume the following 1D magnetic field configuration where B depends only on the z coordinate across the current sheet surface. In this configuration, the total magnetic field magnitude remains constant across the current sheet (force-free), while the direction of the primary magnetic field component undergoes a reversal. This rotation is prescribed using a hyperbolic tangent profile for the main field component.
+
+To quantitatively analyze how particles are scattered by solar wind current sheets, we conducted extensive test particle simulations using a dataset of solar wind current sheets at 1 AU. 
+
+Under the adopted normalization, the key parameters governing the particle dynamics are the current sheet thickness, the magnetic field magnitude, the azimuthal angle of the background field, and the rotational shear angle across the current sheet.
+
+
+we solve numerically the simplified Newton-Lorentz equation neglecting a large-scale electric field  $d p /dt = q v \times B (x)$.
+
+
+In the test-particle simulations, particles are initially launched far from the current sheet so that they interact with it as they propagate inward from the ambient magnetic field region. During these encounters, particles experience changes in pitch angle, abrupt trajectory jumps, and transitions between adjacent magnetic field lines. This process is fundamentally different from conventional field-line random-walk models, as no field-line stochasticity is imposed. Instead, cross-field transport arises directly from particle–current-sheet interactions that carry particles from one field line to another.
+
+
+Modeling the long-term effect of particle pitch-angle scattering by current sheets involves simulating the dynamics of a large number of particles through multiple current sheet interactions over extended periods. To reduce computational time and complexity of such simulations and introduce scattering effects into existing transport models, we derive a simplified probabilistic description of pitch-angle evolution. The scattering process depends on the particle’s initial conditions, (r, v), as well as the configuration of the current sheet, B. In the 1D model, these initial conditions can be expressed in terms of z, E0, α0, and ψ0. Since our primary interest lies in the pitch angle after the particle exits the current sheet, and the energy E0 remains constant in the absence of an electric field, the initial energy E0 and position z (provided that the particle is sufficiently far from the center of the current sheet) can be omitted from further consideration.
+
+Compare with Observed Parallel Diffusion Coefficient
+
+@chenParallelDiffusionCoefficient2024
+
+adiabatic focusing @effenbergerDiffusionApproximationTelegraph2014
+
 ## Introduction
 
 The total time between two consecutive current sheet encounters is modeled as the sum of the time spent inside the current sheet $T_{cs}$, and the time spent free-streaming between sheets $T_{fs}$, given by:

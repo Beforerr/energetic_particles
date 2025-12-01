@@ -19,5 +19,7 @@ bibliography:
 
 wrap: preserve
 
-engines:
-  - julia
+execute:
+  eval: false
+
+engines: [julia]
