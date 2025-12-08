@@ -70,15 +70,18 @@ vp = 4096.0u"km/s"
 
 ## Particle trajectories
 
-
 ```{julia}
 using Beforerr
 using CairoMakie
 include("../src/plot.jl")
 
+update_theme!(; figure_padding=2)
+
 plot_state_trajectories(wind_results[3], max_time)
 easy_save("trajectories_1MeV")
 ```
+
+![](../figures/trajectories_1MeV.png)
 
 ```{julia}
 # Plot trajectory
@@ -104,38 +107,39 @@ includet("../src/diffusion.jl")
 wind_dcs = estimate_diffusion_coefficient.(wind_results, max_time) |> collect |> FieldViewable
 psp_dcs = estimate_diffusion_coefficient.(psp_results, max_time) |> collect |> FieldViewable
 
-# au1_κ_parallels = κ_parallel.(1, energies, Val(Chen24))
-# au01_κ_parallels = κ_parallel.(0.11, energies, Val(Chen24))
+au1_κ_parallels = κ_parallel.(1, energies, Val(Chen24))
+au01_κ_parallels = κ_parallel.(0.1, energies, Val(Chen24))
 
-_κ(κ) = κ * 1u"s"
-_E(E) = NoUnits(E / 1u"MeV")
+_κ(κ) = upreferred(κ / 1u"km^2/s")
+_E(e) = upreferred(e / 1u"MeV")
 
-# Plot with diffusion fit
 fig = Figure()
 let plot! = scatterlines!
-    x = collect(_E.(energies))
-    ax1 = Axis(fig[1, 1], ylabel=L"$κ_⊥$ [km²/s]", yscale=log10)
-    p1 = plot!(ax1, x, collect(_κ.(wind_dcs.κ_perp)))
-    # p2 = plot!(ax1, energies, au1_κ_perpals)
-    p3 = plot!(ax1, x, collect(_κ.(psp_dcs.κ_perp)))
-    # p4 = plot!(ax1, energies, au01_κ_perpals)
+    axis = (; xscale=log10, yscale=log10)
+    x = _E.(collect(energies))
+    ax1 = Axis(fig[1, 1]; ylabel=L"$κ_⊥$ [km²/s]", axis...)
+    p1 = plot!(ax1, x, collect(_κ.(wind_dcs.κ_perp)); label="1 AU (CS, Wind)")
+    p3 = plot!(ax1, x, collect(_κ.(psp_dcs.κ_perp)); label="0.1 AU (CS, PSP)")
+    axislegend(ax1; position=:lt, nbanks=2)
 
-    ax2 = Axis(fig[2, 1], ylabel=L"$κ_∥$ [km²/s]", yscale=log10)
+    ax2 = Axis(fig[2, 1]; ylabel=L"$κ_∥$ [km²/s]", axis...)
     plot!(ax2, x, collect(_κ.(wind_dcs.κ_para)))
     plot!(ax2, x, collect(_κ.(psp_dcs.κ_para)))
+    plot!(ax2, x, collect(_κ.(au1_κ_parallels)); label="1 AU (QLT)", linestyle=:dash, color=Cycled(1))
+    plot!(ax2, x, collect(_κ.(au01_κ_parallels)); label="0.1 AU (QLT)", linestyle=:dash, color=Cycled(2))
+    axislegend(ax2; position=:lt, nbanks=2)
+    # ylims!(ax2, (8e8, 2e12))
 
-    ax3 = Axis(fig[3, 1], xlabel=𝐋.E, ylabel=L"$κ_⊥ / κ_∥$")
+    ax3 = Axis(fig[3, 1]; xlabel=𝐋.E, ylabel=L"$κ_⊥ / κ_∥$", axis...)
     plot!(ax3, x, collect(wind_dcs.κ_perp ./ wind_dcs.κ_para))
     plot!(ax3, x, collect(psp_dcs.κ_perp ./ psp_dcs.κ_para))
-
-    # Legend(f[0, 1], [p1, p2, p3, p4], ["Wind", "Observation (1 AU)", "PSP", "Observation (0.1 AU)"])
-    Legend(f[0, 1], [p1, p3], ["Wind", "PSP"])
     hidexdecorations!.((ax1, ax2))
 end
-fig
 
 easy_save("diffusion")
 ```
+
+![](../figures/diffusion.png)
 
 
 ### Comparing with analytical diffusion coefficients

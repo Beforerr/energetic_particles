@@ -89,6 +89,6 @@ function arrival_time(v::Velocity; s = 1u"AU")
     return s / v |> u"d"
 end
 
-κ_perp(E; B = 10u"nT", a = 10) = (a * gyroradius(B, E))^2 * event_frequency(E) |> u"cm^2 /s"
+# κ_perp(E; B = 10u"nT", a = 10) = (a * gyroradius(B, E))^2 * event_frequency(E) |> u"cm^2 /s"
 
 event_frequency(E; kw...) = event_frequency(v_parallel(E); kw...)

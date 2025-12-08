@@ -76,3 +76,67 @@ $$
 $$
 z = z.
 $$
+
+## Conclusions
+
+$$
+\mathbf{B} = B (\cos θ \ \mathbf{e_z} + \sin θ ( \sin φ(z) \ \mathbf{e_x} + \cos φ (z) \ \mathbf{e_y}))
+$$
+
+keV up to GeV
+
+-   acceleration
+    -   flares in the solar corona
+    -   interplanetary shocks
+-   transport
+    -   perpendicular transport
+        -   random walk, or braiding, of the magnetic field @giacaloneTransportCosmicRays1999
+            -   $\kappa_{\perp} / \kappa_{\parallel} \sim 0.02-0.04$
+    -   drift motion
+    -   pitch-angle scattering
+        -   turbulence (fluctuation amplitude, spectral index, anisotropy, intermittency...)
+            -   theory
+                -   @matthaeusNonlinearCollisionlessPerpendicular2003
+            -   observations
+        -   coherent structures
+            -   numerical simulations
+                -   @malaraChargedparticleChaoticDynamics2021
+                    -   trapping times have a nearly **power-law** distribution
+                    -   1 MeV protons
+    -   observations
+        -   superdiffusive parallel transport
+
+        -   associations with coherent structures
+
+            -   SEP dispersionless modulations (SEP dropout events)
+                -   @trenchiSolarEnergeticParticle2013, @neugebauerEnergeticParticlesTangential2015, @tesseinEffectCoherentStructures2015
+                -   generally associated with magnetic boundaries
+                -   EP boundaries occur at large-scale TDs [@neugebauerEnergeticParticlesTangential2015] (for EP boundaries that were not located at interplanetary shocks or caused by intermittent connection to the Earth’s bow shock)
+                    -   ACE EPAM/LEMS: 65–112 and 112–187 keV
+                -   magnetic discontinuities may act as barriers inhibiting the motion of energetic particles across them. [@tesseinEffectCoherentStructures2015]
+
+        -   Large longitudinal spread of 3He-rich SEP events
+
+        -   
+
+            ## Longitudinal distributions of large gradual SEP events
+
+            ```         
+            > but this required an unrealistically large value for the ratio of the perpendicular-to-parallel diffusion coefficient of ≈0.3.
+            ```
+
+Superdiffusive transport parallel due to the pitch-angle scattering times having a non-Markovian, **power-law** probability distribution
+
+The Parker equation, which governs the spatial, temporal and momentum evolution of a distribution of energetic charged particles, is given by Parker (1965):
+
+$$
+\frac{\partial f}{\partial t}=\frac{\partial}{\partial x_i}\left[\kappa_{i j} \frac{\partial f}{\partial x_j}\right]-U_i \frac{\partial f}{\partial x_i}+\frac{p}{3} \frac{\partial U_i}{\partial x_i}\left[\frac{\partial f}{\partial p}\right]+\text { Sources }- \text { Losses. }
+$$
+
+where f is the phase-space distribution function of test particles as a function of the magnitude of the particle momentum, p, position, xi , and time, t; Ui is the bulk plasma velocity; and κi j is the diffusion tensor. We note that the distribution function is related to the differential intensity, dJ/dE, which is commonly used in representations of SEP energy spectra, by dJ/dE = p2 f .
+
+# References
+
+-   @desaiLargeGradualSolar2016
+
+-   @zimbardoNonMarkovianPitchangleScattering2020

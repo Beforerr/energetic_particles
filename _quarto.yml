@@ -1,6 +1,6 @@
 project:
-  type: website
-  # type: manuscript
+  # type: website
+  type: manuscript
   title: "Energetic Particles"
 
 website:
@@ -13,6 +13,7 @@ website:
 
 manuscript:
   article: index.qmd
+  code-links: [repo]
 
 bibliography:
   - files/bibliography/research.bib

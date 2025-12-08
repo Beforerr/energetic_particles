@@ -1,231 +1,77 @@
 ---
-title: Energetic Particle (EP)
-code-links:
-  - repo
-  - href: zotero://select/library/collections/S57BI484
-    text: Zotero
-  - href: https://app.tana.inc?nodeid=mTNY0iMFlnmI
-    text: Tana
+title: Energetic Particle Transport in Solar Wind Current Sheets
+author:
+  - name: Zijin Zhang
+    email: zijin@ucla.edu
+    orcid: 0000-0002-9968-067X
+    affiliation: University of California, Los Angeles
+    roles: writing
+    corresponding: true
+  - name: Anton V. Artemyev
+    email: aartemyev@igpp.ucla.edu
+    orcid: 0000-0001-8823-4474
+    affiliation: University of California, Los Angeles
+  - name: Vassilis Angelopoulos
+    email: vassilis@ucla.edu
+    orcid: 0000-0001-7024-1561
+    affiliation: University of California, Los Angeles
+format:
+  html: default
+  latex:
+    cite-method: natbib
+  typst: default
+abstract: |
+    Traditional understandings of heliospheric particle transport often rely on simplified turbulence models, neglecting coherent structures. Here, we demonstrate that interactions with solar wind current sheets drive a distinct regime of energetic particle transport. Using test-particle simulations based on heliospheric observations, we show that current sheets induce non-adiabatic scattering and rapid cross-field diffusion. We find that perpendicular diffusion scales with energy significantly faster than parallel diffusion, causing the ratio $D_{\perp}/D_{\parallel}$ to exceed standard predictions at high energies. This provides a mechanism for the rapid cross-field transport required to explain the broad spatial extent of solar energetic particle events observed in the inner heliosphere.
 ---
 
-```{=html}
-<!--
- Physical Review Letters (PRL) 
- 
-- @tennysonChangeAdiabaticInvariant1986
-- @zhdankinMagneticDiscontinuitiesMagnetohydrodynamic2012
-- @liEffectCurrentSheets2011
--->
-```
+The transport of energetic particles (EP) in the heliosphere is strongly influenced by the turbulent magnetic field [@pucciEnergeticParticleTransport2016; @kleinAccelerationPropagationSolar2017; @engelbrechtTheoryCosmicRay2022; @effenbergerOpenIssuesNongaussian2025].  Traditionally, the scattering and transport processes have been modeled using a quasi-linear diffusive approach, assuming magnetic field fluctuations possess a broadband, low-amplitude spectrum without detailed internal structure. However, far from being a simple superposition of random fluctuations, solar-wind turbulence comprises a variety of coherent structures—including current sheets, Alfvénic vortices, and flux ropes [@liEffectCurrentSheets2011; @perroneCoherentEventsIon2020; @khabarovaCurrentSheetsPlasmoids2021; @pezziCurrentSheetsPlasmoids2021]—arising from nonlinear energy cascade processes [@degiorgioCoherentStructureFormation2017].
+Understanding particle interaction with these coherent structures [@qinEffectFluxTubes2008; @zelenyiChargedParticleAcceleration2011; @trenchiSolarEnergeticParticle2013; @malaraChargedparticleChaoticDynamics2021; @malaraEnergeticParticleDynamics2023] is essential for clarifying the mechanisms governing particle transport in the heliosphere. Building on our previous investigation of pitch-angle scattering by solar wind current sheets [@zhangQuantificationIonScattering2025; @artemyevSuperfastIonScattering2020], this work characterizes the parallel and perpendicular transport of particles resulting from interactions with current sheets.
 
-```{=html}
-<!-- References
-- @cuestaDistinctSolarEnergetic2025
-- @malovaEvidenceQuasiadiabaticMotion2016: Evidence for quasi-adiabatic motion of charged particles in strong current sheets in the solar wind
-- @zhaoDetectionSmallMagnetic2021: Detection of small magnetic flux ropes from the third and fourth parker solar probe encounters
-- @pezziCurrentSheetsPlasmoids2021: Current sheets, plasmoids and flux ropes in the heliosphere
-- @tanAlternativeInterpretationImpulsive2020: An alternative interpretation of impulsive SEP events occurring on 1999 january 9–10
- -->
-```
+Parallel transport has been attributed to pitch-angle scattering [@jokipiiCosmicRayPropagationCharged1966], traditionally modeled as a diffusive process via a pitch-angle diffusion coefficient. However, in the presence of current sheets—specifically when the gyroradius becomes comparable to the local magnetic field curvature radius—the first adiabatic invariant (magnetic moment) may be violated [@tennysonChangeAdiabaticInvariant1986; @neishtadtMechanismsDestructionAdiabatic2019]. This violation can cause significant non-diffusive jumps in pitch angle, leading to rapid mixing that standard diffusive approaches fail to capture. 
+Regarding perpendicular transport, it is often assumed that field-line random walk dominates cross-field motion in the limit of slowly varying perturbations [@matthaeusNonlinearCollisionlessPerpendicular2003; @shalchiNonlinearCosmicRay2009]. While valid where the magnetic field is smooth on scales comparable to energetic particle gyroradii, this assumption likely breaks down near current sheets. Here, the magnetic field is highly inhomogeneous, varying on scales similar to or smaller than the gyroradius. In this regime, guiding center theory is inapplicable; particles become demagnetized and may undergo significant cross-field transport, jumping between magnetic field lines even in the absence of field-line random walks.
 
-The transport of energetic particles is strongly influenced by the turbulent magnetic field of the solar wind [@effenbergerOpenIssuesNongaussian2025]. Beyond simple magnetic fluctuations, solar-wind turbulence contains a variety of coherent structures, including current sheets, Alfvénic vortices, and flux ropes. The classical theory of particle scattering and transport is based on consideration of an ensemble of random magnetic field fluctuations, whereas the internal structure of such fluctuations has not been studied in detail. Understanding particle transport within these coherent structures is essential for clarifying the mechanisms governing particle transport in the heliosphere. Building on our previous investigation of pitch-angle scattering in the presence of current sheets, this work focuses on characterizing the parallel and perpendicular transport of particles due to interactions with current sheets.
+<!-- in addition to the transverse displacements due to drift motions in inhomogeneous fields of the 3D heliosphere -->
 
-Traditionally, parallel diffusion has been attributed to pitch-angle scattering. Most transport models treat this process as diffusive, modeling pitch-angle evolution through a pitch-angle diffusion coefficient. However, in the presence of current sheets when the gyroradius becomes comparable to the local magnetic field curvature radius, the adiabatic invariance of particles (magnetic momentum) may experience a violation and particles would have significant pitch angle change (jumps), leading to rapid particle mixing in pitch angles. In particular, interactions with current sheets can induce non–small-pitch-angle jumps, which cannot be adequately described by standard diffusive approaches.
+<!-- Accurately modeling current sheets (localized intermittency), which have spatial scales of only a few ion inertial lengths, is computationally prohibitive in global particle transport models. Furthermore, past test-particle simulations often assumed a simplified magnetic field superposition of random fluctuations, with limited attention to the intermittency [@pucciEnergeticParticleTransport2016] and thus potentially misrepresenting the actual solar wind magnetic turbulence. -->
 
-For perpendicular transport, it is often assumed that field-line random walk dominates cross-field motion in the limit of slowly varying perturbation terms [@shalchiNonlinearCosmicRay2009] as the magnetic field is typically smooth on scales comparable to SEP gyro-radii. However, this assumption would likely fall also near the current sheets where  the magnetic field becomes highly inhomogeneous, often varying on scales similar to or smaller than the gyro-radius. Particles are demagnetized with guiding center illly defined. Significant cross–field displacements can occur and particles may jump from one magnetic field line to another, resulting in substantially enhanced perpendicular transport even in the absense of field line random walks.
+In this work, we investigate energetic particle transport driven by interactions with current sheets. By incorporating statistical parameters derived from solar wind observations at 0.1 AU and 1 AU into a realistic current sheet configuration, we analyze the transport process through an ensemble of current sheets and study the long-term behavior of particles across various energies.
 
-Past test-particle simulations often assumes a simplified magnetic field configuration which may not be representative of the real magnetic field with localized intermittency. 
-This study aims to bridge that gap by providing a detailed analysis and quantification of particle transport due to their interactions with current sheets. We incorporates realistic statistical parameters derived from solar wind observations at 1 AU and investigate the evolution of particle transport with an ensemble of current sheets and we study the statistical long-term behavior of particle transport across different particle energies.
 
-The paper is organized as follows. First, we describe the key parameters of current sheets relevant to our simulations. Next, we perform test-particle simulations to examine the transport of energetic particles under different magnetic field configurations. We then analyze observational data from the Wind spacecraft at 1 AU to investigate the statistical behavior of the particle population. Using these results, we calculate the parallel and perpendicular displacements associated with interactions with current sheets. Finally, we conduct large-scale Monte Carlo simulations to characterize the collective transport behavior and derive the effective diffusion coefficients of energetic particles at 1 AU.
+<!-- The paper is organized as follows. First, we describe the key parameters of current sheets relevant to our simulations. Next, we perform test-particle simulations to examine the transport of energetic particles under different magnetic field configurations. We then analyze observational data from the Wind spacecraft at 1 AU to investigate the statistical behavior of the particle population. Using these results, we calculate the parallel and perpendicular displacements associated with interactions with current sheets. Finally, we conduct large-scale Monte Carlo simulations to characterize the collective transport behavior and derive the effective diffusion coefficients of energetic particles at 1 AU. -->
 
+Current sheets are meso-scale structures where the magnetic field direction changes significantly from one side to the other. We assume a 1D force-free magnetic field configuration where $\mathbf{B}$ depends only on the $z$ coordinate (the normal direction): $\mathbf{B}(z) = B [\cos θ \ \mathbf{e_z} + \sin θ \sin φ(z) \ \mathbf{e_x} + \sin θ \cos φ (z) \ \mathbf{e_y}]$. 
+In this configuration, the total magnetic magnitude $B$ and the normal component $B_z = B \cos \theta$ remain constant, while the primary component $B_x$ undergoes a reversal.  This rotation is prescribed using a hyperbolic tangent profile $\phi(z) = \beta \tanh(z/L)$, where $L$ is the thickness and $\beta$ is the shear angle. The configuration parameters ($B$, $L$, $\theta$, and $\beta$) are drawn from observations [@zhangEvolutionSolarWind2025] at 1 AU (ARTEMIS [@angelopoulosARTEMISMission2011] and Wind [@acunaGlobalGeospaceScience1995]) and at 0.1 AU (Parker Solar Probe [@foxSolarProbeMission2016]).
 
-<!-- In field line random walk (FLRW) theory we describe the statistics of magnetic field lines in magnetohydrodynamic (MHD) turbulence. The most important application is the theory of perpendicular transport of energetic particles where it has been shown in the past that the field line diffusion coefficient directly impacts the particle motion (see, e.g., Webb et al. (2006), Shalchi (2010), Shalchi (2019), Shalchi (2020b), and Shalchi (2021b)). -->
+We employ a Monte Carlo method with test-particle simulations to investigate transport through multiple current sheets. Each particle is initialized with a random pitch angle $\alpha$ and gyrophase $\psi$, traversing a distance $L$ corresponding to the observed spatial separation between neighboring sheets. For simplicity, we assume (1) the current sheets are static during the interaction time; (2) $L$ is a constant, depending only on the heliocentric radial distance, and (3) there is no pitch-angle scattering during transit. Consequently, particles transit the distance $L$ in time $t_L = L/ | v_{\parallel} |$ before encountering a current sheet.
 
+We model the interaction by numerically solving the simplified Newton-Lorentz equation $d \mathbf{p} /dt = q \mathbf{v} \times \mathbf{B}$, neglecting large-scale electric fields and explicit time dependence, as energetic particle velocities are high compared to the Alfvén speed. Magnetic field parameters for each interaction are randomly sampled from the observed distributions. 
 
-## Magnetic Field Configuration
+In each test-particle simulation, particles are launched far from the sheet center with a random gyrophase $\psi \in [0, 2\pi)$ and traced until they exit the interaction region. We record the change in pitch angle and calculate the net perpendicular guiding-center displacement $\Delta \mathbf{r}_{\perp}$ between the entry and exit points. Trapping time within the current sheet is estimated by subtracting the ballistic transit time (approach to and departure from the current sheet assuming no pitch-angle scattering) from the total simulation time. For most interactions, trapping persists for several gyroperiods. Since the background magnetic field orientation could vary slowly between sheets, we treat the orientation of individual current sheets as random variables. The accumulated perpendicular displacement after multiple interactions is modeled as a sequence of random rotations $\mathbf{R}$ applied to individual displacement vectors: $\Delta \mathbf{r}_{\perp} = \sum_{i} \mathbf{R}_i \cdot \Delta \mathbf{r}_{\perp, i}$. The total parallel displacement is simply the sum of the parallel displacement between sheets: $\Delta z = \sum_{i} \text{sgn}(\mu_i) \cdot L$.
 
-We assume the following 1D magnetic field configuration where B depends only on the z coordinate across the current sheet surface. In this configuration, the total magnetic field magnitude remains constant across the current sheet (force-free), while the direction of the primary magnetic field component undergoes a reversal. This rotation is prescribed using a hyperbolic tangent profile for the main field component.
+We propagate an ensemble of particles and compute $\langle \Delta z^2 \rangle$ and $\langle \Delta \mathbf{r}_{\perp}^2 \rangle$ by interpolating trajectories at successive time steps. Both parallel and perpendicular transport exhibit diffusive behavior, growing linearly with time in the asymptotic limit. We calculate the diffusion coefficients $D_{\parallel} = \lim_{t \to \infty} \langle \Delta z(t)^2 \rangle / 2t$ and $D_{\perp} = \lim_{t \to \infty} \langle \Delta \mathbf{r}_{\perp}(t)^2 \rangle / 2t$ using 512 particles at late times ($t = 2 \times 10^3$ s).
 
-To quantitatively analyze how particles are scattered by solar wind current sheets, we conducted extensive test particle simulations using a dataset of solar wind current sheets at 1 AU. 
+The main findings are presented in @fig-trajs and @fig-diffusion. @fig-trajs displays the state trajectories for 1-MeV particles interacting with near-Earth current sheets.
 
-Under the adopted normalization, the key parameters governing the particle dynamics are the current sheet thickness, the magnetic field magnitude, the azimuthal angle of the background field, and the rotational shear angle across the current sheet.
 
+::: {#fig-trajs}
 
-we solve numerically the simplified Newton-Lorentz equation neglecting a large-scale electric field  $d p /dt = q v \times B (x)$.
+![](figures/trajectories_1MeV.pdf)
 
+Parallel and perpendicular displacements for 1-MeV particles interacting with near-Earth current sheets. Gray lines: individual particle trajectories; Blue line: standard deviation of the ensemble; Black line: a representative trajectory.
+:::
 
-In the test-particle simulations, particles are initially launched far from the current sheet so that they interact with it as they propagate inward from the ambient magnetic field region. During these encounters, particles experience changes in pitch angle, abrupt trajectory jumps, and transitions between adjacent magnetic field lines. This process is fundamentally different from conventional field-line random-walk models, as no field-line stochasticity is imposed. Instead, cross-field transport arises directly from particle–current-sheet interactions that carry particles from one field line to another.
+While most trajectories show a linear increase in parallel displacement with minor perpendicular fluctuations, specific magnetic configurations induce substantial discontinuities in the particle state. These include large pitch-angle jumps, which may lead to reflection, and abrupt cross-field displacements. While these jumps may occur independently, the stochastic accumulation leads to diffusive macroscopic transport, causing particles to disperse along the field lines and diverge from their initial field lines.
 
+@fig-diffusion summarizes the diffusion coefficients as functions of particle energy for 1 AU and 0.1 AU environments, comparing our results with quasi-linear theory predictions derived from measured magnetic turbulence power spectra [@chenParallelDiffusionCoefficient2024].
 
-Modeling the long-term effect of particle pitch-angle scattering by current sheets involves simulating the dynamics of a large number of particles through multiple current sheet interactions over extended periods. To reduce computational time and complexity of such simulations and introduce scattering effects into existing transport models, we derive a simplified probabilistic description of pitch-angle evolution. The scattering process depends on the particle’s initial conditions, (r, v), as well as the configuration of the current sheet, B. In the 1D model, these initial conditions can be expressed in terms of z, E0, α0, and ψ0. Since our primary interest lies in the pitch angle after the particle exits the current sheet, and the energy E0 remains constant in the absence of an electric field, the initial energy E0 and position z (provided that the particle is sufficiently far from the center of the current sheet) can be omitted from further consideration.
 
-Compare with Observed Parallel Diffusion Coefficient
+::: {#fig-diffusion}
+![](figures/diffusion.pdf)
 
-@chenParallelDiffusionCoefficient2024
+Diffusion coefficients vs. particle energy at 1 AU and 0.1 AU. (a) Parallel diffusion; (b) Perpendicular diffusion; (c) Ratio of perpendicular to parallel diffusion.
+:::
 
-adiabatic focusing @effenbergerDiffusionApproximationTelegraph2014
+A key finding is that perpendicular transport induced by current sheets increases much more rapidly with particle energy than parallel transport. The ratio $D_{\perp}/D_{\parallel}$ can exceed the typically assumed $2\%-4\%$ for high-energy particles ($>1$ MeV at 1 AU). This strong energy dependence differs from earlier studies suggesting the ratio is independent of energy [@shalchiPerpendicularDiffusionEnergetic2021] and intermittency [@pucciEnergeticParticleTransport2016]. Our results offer a potential explanation for observational puzzles such as the large longitudinal and latitudinal extent of solar energetic particle (SEP) events detected by widely separated spacecraft [@zhangPropagationSolarEnergetic2009; @larioSolarEnergeticParticle2014; @desaiLargeGradualSolar2016].
 
-## Introduction
-
-The total time between two consecutive current sheet encounters is modeled as the sum of the time spent inside the current sheet $T_{cs}$, and the time spent free-streaming between sheets $T_{fs}$, given by:
-
-$$
-T = T_{cs} + T_{fs}, \quad T_{fs} = \frac{s_{fs}}{|v_{∥,1}|}
-$$
-
-where $v_{∥,0}$, $v_{∥,1}$ are the particle's changed parallel velocity before and after interacting with the current sheet, respectively.
-
-In the absence of scattering, the particle would follow the field line and travel a distance:
-
-$$
-s_0 = |v_{∥,0}| \cdot T = |v_{∥,0}| \left( T_{cs} + T_{fs} \right).
-$$
-
-However, when scattering occurs, the total parallel distance traveled relative to the starting point becomes:
-
-$$
-s = \text{Sign} \cdot s_{fs} + \frac{1 + \text{Sign}}{2} s_{cs}^*
-$$
-
-where $\text{Sign} = \text{sign}\left(\frac{v_{∥,1}}{v_{∥,0}}\right)$ equals to $-1$ for particle reflection and $1$ for particle crossing.
-
-Approximately, $T_{fs} \approx s_{fs}/ |v_{∥,1}|$
-
-Under the approximation that $s_{cs}^* << s_{fs}$, where $s_{cs}^*$ is the effective parallel distance the particle travels within the current sheet. The net displacement compared to the unperturbed case is then:
-
-$$
-Δ s_∥ = s - s_0 = s_{fs} \left(\text{Sign} - \frac{|v_{∥,0}|}{|v_{∥,1}|} \right) + \frac{\text{Sign} + 1 }{2} s_{cs}^* - |v_{∥,0}| T_{cs}
-$$
-
-This displacement depends on particle initial pitch-angle $\mu_0 = \cos α_0$ and gyrophase $\varphi_0$.
-
-To analyze the average displacement resulting from multiple interactions with a current sheet, we begin by examining how the pitch-angle $\mu=\cos α$ is distributed following successive encounters.
-
-$$
-P(α) dα = d(\sin^2 α) => P(α) = \sin α |\cos α|
-$$
-
-![](./figures/pa_cdf.png)
-
-This distribution provides a basis for computing the weighted average of both the perpendicular and parallel displacements.
-
-$$
-<Δ s_∥> =  \int Δ s_∥ P(𝐯) d𝐯 = 2π v^2 \int_{0}^{\pi} Δ s_∥ P(α) \sin α dα = 2π v^2 \int_{0}^{\pi} Δ s_∥ |\cos α| \sin^2 α dα
-$$
-
-Given $\mu=\cos α$, we have:
-
-$$
-\int_{0}^{\pi} Δ s_∥ |\cos α| \sin^2 α dα = \int_{-1}^{1} Δ s_∥ |\mu| \sqrt{1-\mu^2} d\mu
-$$
-
-For discrete samples $\mu_i$, we have:
-
-$$
-\overline{Δ s_∥} =  \sum_i w_i Δ s_{∥,i}  / \sum w
-$$
-
-where $w_i = |\mu_i| \sqrt{1-\mu_i^2}$.
-
-Current sheets of left-hand or right-hand polarity have symmetry in perpendicular displacements.
-
-Assuming that both occur with equal probability, due to this symmetry, the net average perpendicular transport vanishes, yielding a mean perpendicular displacement of zero.
-
-This polarity does not influence the parallel displacement.
-
-$$
-\overline{Δ s_⊥} = 0
-$$
-
-![](./figures/Δt_β=60.png)
-
-![](./figures/Δs_β=60.pdf)
-
-![](./figures/Δs_βscan_vscan_weighted.pdf)
-
-![](./figures/κ_βscan_vscan_weighted.pdf)
-
-The parallel spatial diffusion coefficient is then expressed as:
-
-$$
-κ_∥ = \sqrt{\frac{1}{\sum{w}} \sum_{i=1}^n {w_i  \frac{(Δ s_{∥,i} - \overline{Δ s_∥})^2}{T_i} }}
-$$
-
-Similarly, for the perpendicular direction:
-
-$$
-κ_⊥ = \sqrt{\frac{1}{\sum{w}} \sum_{i=1}^n {w_i  \frac{(Δ s_{⊥,i} - \overline{Δ s_⊥})^2}{T_i} }}
-$$
-
-where $T_i = T_{cs, i} + | s_{fs} / v_{∥,1,i} |$.
-
-$l_0 =3 \times 10^3 \text{ km}$
-
-$κ_0 = l_0^2 / t_0 \approx 10^7 \text{ km}^2 \text{ s}^{-1}$
-
-The standard deviations of both parallel and perpendicular displacements increase with the shear angle. Notably, the perpendicular standard deviation is more strongly influenced by the ratio of the particle gyroradius to the current sheet thickness, indicating a greater sensitivity to the scale of the magnetic structure relative to the particle’s gyro-motion.
-
-## Conclusions
-
-$$
-\mathbf{B} = B (\cos θ \ \mathbf{e_z} + \sin θ ( \sin φ(z) \ \mathbf{e_x} + \cos φ (z) \ \mathbf{e_y}))
-$$
-
-keV up to GeV
-
--   acceleration
-    -   flares in the solar corona
-    -   interplanetary shocks
--   transport
-    -   perpendicular transport
-        -   random walk, or braiding, of the magnetic field @giacaloneTransportCosmicRays1999
-            -   $\kappa_{\perp} / \kappa_{\parallel} \sim 0.02-0.04$
-    -   drift motion
-    -   pitch-angle scattering
-        -   turbulence (fluctuation amplitude, spectral index, anisotropy, intermittency...)
-            -   theory
-                -   @matthaeusNonlinearCollisionlessPerpendicular2003
-            -   observations
-        -   coherent structures
-            -   numerical simulations
-                -   @malaraChargedparticleChaoticDynamics2021
-                    -   trapping times have a nearly **power-law** distribution
-                    -   1 MeV protons
-    -   observations
-        -   superdiffusive parallel transport
-
-        -   associations with coherent structures
-
-            -   SEP dispersionless modulations (SEP dropout events)
-                -   @trenchiSolarEnergeticParticle2013, @neugebauerEnergeticParticlesTangential2015, @tesseinEffectCoherentStructures2015
-                -   generally associated with magnetic boundaries
-                -   EP boundaries occur at large-scale TDs [@neugebauerEnergeticParticlesTangential2015] (for EP boundaries that were not located at interplanetary shocks or caused by intermittent connection to the Earth’s bow shock)
-                    -   ACE EPAM/LEMS: 65–112 and 112–187 keV
-                -   magnetic discontinuities may act as barriers inhibiting the motion of energetic particles across them. [@tesseinEffectCoherentStructures2015]
-
-        -   Large longitudinal spread of 3He-rich SEP events
-
-        -   
-
-            ## Longitudinal distributions of large gradual SEP events
-
-            ```         
-            > but this required an unrealistically large value for the ratio of the perpendicular-to-parallel diffusion coefficient of ≈0.3.
-            ```
-
-Superdiffusive transport parallel due to the pitch-angle scattering times having a non-Markovian, **power-law** probability distribution
-
-The Parker equation, which governs the spatial, temporal and momentum evolution of a distribution of energetic charged particles, is given by Parker (1965):
-
-$$
-\frac{\partial f}{\partial t}=\frac{\partial}{\partial x_i}\left[\kappa_{i j} \frac{\partial f}{\partial x_j}\right]-U_i \frac{\partial f}{\partial x_i}+\frac{p}{3} \frac{\partial U_i}{\partial x_i}\left[\frac{\partial f}{\partial p}\right]+\text { Sources }- \text { Losses. }
-$$
-
-where f is the phase-space distribution function of test particles as a function of the magnitude of the particle momentum, p, position, xi , and time, t; Ui is the bulk plasma velocity; and κi j is the diffusion tensor. We note that the distribution function is related to the differential intensity, dJ/dE, which is commonly used in representations of SEP energy spectra, by dJ/dE = p2 f .
-
-# References
-
--   @desaiLargeGradualSolar2016
-
--   @zimbardoNonMarkovianPitchangleScattering2020
+In summary, this study demonstrates that interactions with current sheets are a significant driver of energetic-particle transport. Our model is necessarily simplified. For example, we do not include realistic waiting-time distributions between current-sheet, which may give rise to anomalous transport regimes [@giacaloneAnomalousCosmicRays2022; @effenbergerOpenIssuesNongaussian2025]. We also neglect the systematic evolution of the heliospheric magnetic field with radial distance and the resulting changes in current-sheet configurations experienced by propagating particles. Moreover, the heliosphere is inherently three-dimensional [@effenbergerDiffusionApproximationTelegraph2014], and actual current sheets exhibit complex three-dimensional structures that are not captured in our present modeling framework.
+Despite these simplifications, our results provide some of the first quantitative evidence that current sheets may play a substantial role in modulating energetic-particle transport. Because current sheets constitute a major component of solar-wind turbulence [@malandrakiCurrentSheetsMagnetic2019] and contribute significantly to magnetic field fluctuations [@borovskyContributionStrongDiscontinuities2010], accounting for their effects is essential for developing accurate transport models [@whitmanReviewSolarEnergetic2023]. Future work should therefore aim to incorporate more realistic descriptions of current-sheet geometries and dynamics to better quantify and constrain their influence on particle propagation.

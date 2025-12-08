@@ -18,41 +18,46 @@ const 𝐋 = (;
     κperp = L"$κ_⊥$ [km²/s]",
 )
 
-_time(t) = t
-_time(t::Unitful.Time) = NoUnits(t / u"s")
-_z(t) = t
-_z(t::Unitful.Length) = NoUnits(t / u"km")
 
 function plot_state_trajectories(fp, trajs, max_time)
-    xlabel = 𝐋.t
-    ax1 = Axis(fp[1, 1]; xlabel, ylabel = 𝐋.Δz)
-    traj = rand(trajs)
-    max_time = _time(max_time)
-    t_grid = range(100.0, max_time, length = 250)
-    z_stds = z_std(trajs).(t_grid .* u"s")
-    lines!(ax1, t_grid, z_stds)
-    lines!(ax1, t_grid, z_mean(trajs).(t_grid .* u"s"))
-    lines!(ax1, _time.(traj.t), _z.(traj.z); color = :black)
+    _t(t) = t / 1.0e4
+    _t(t::Unitful.Time) = NoUnits(t / 1.0e4u"s")
+    _z(z::Unitful.Length) = NoUnits(z / 1.0e7u"km")
+    _z(z::Number) = z / 1.0e7
 
-    ax2 = Axis(fp[2, 1]; xlabel, ylabel = 𝐋.Δx)
-    rperp_stds = rperp_std(trajs).(t_grid .* u"s")
-    lines!(ax2, t_grid, rperp_stds)
-    lines!(ax2, _time.(traj.t), _z.(norm.(traj.𝐝)); color = :black)
+    xlabel = L"Time [$10^4$ s]"
+    ax1 = Axis(fp[1, 1]; xlabel, ylabel = L"$Δz$ [$10^7$ km]")
+    traj = rand(trajs)
+    t_grid = range(100.0u"s", max_time, length = 250)
+    x = _t.(t_grid)
+
+    ax2 = Axis(fp[2, 1]; xlabel, ylabel = L"$\sqrt{Δ𝐫_⊥^2}$ [$10^7$ km]")
+    rperp_stds = rperp_std(trajs).(t_grid) .|> _z
+
+    # lines!(ax1, x, _z.(z_mean(trajs).(t_grid)); color = Cycled(2), label = "mean")
 
     for traj in trajs
         fv = FieldViewable(traj)
-        lines!(ax1, _time.(fv.t), _z.(fv.z); color = :gray, alpha = 0.1)
-        lines!(ax2, _time.(fv.t), _z.(norm.(fv.𝐝)); color = :gray, alpha = 0.1)
+        lines!(ax1, _t.(fv.t), _z.(fv.z); color = :gray, alpha = 0.1)
+        lines!(ax2, _t.(fv.t), _z.(norm.(fv.𝐝)); color = :gray, alpha = 0.1)
     end
 
-    ax_Δz2 = Axis(fp[1, 2]; xlabel, ylabel = 𝐋.Δz2)
-    lines!(ax_Δz2, t_grid, z_stds .^ 2)
-    ax_Δx2 = Axis(fp[2, 2]; xlabel, ylabel = 𝐋.Δx2)
-    lines!(ax_Δx2, t_grid, rperp_stds .^ 2)
+    lines!(ax1, _t.(traj.t), _z.(traj.z); color = :black)
+    lines!(ax2, _t.(traj.t), _z.(norm.(traj.𝐝)); color = :black)
 
-    # hidexdecorations!.((ax1, ax_Δz2))
-    xlims!(ax1, 0, max_time * 1.01)
-    xlims!(ax2, 0, max_time * 1.01)
+    z_stds = z_std(trajs).(t_grid) .|> _z
+    lines!(ax1, x, z_stds; linewidth = 3, color = Cycled(1))
+    lines!(ax2, x, rperp_stds; linewidth = 3, color = Cycled(1))
+
+
+    ax_Δz2 = Axis(fp[1, 2]; xlabel, ylabel = L"$⟨Δz^2⟩$ [$10^{14}$ km²]")
+    lines!(ax_Δz2, x, z_stds .^ 2)
+    ax_Δx2 = Axis(fp[2, 2]; xlabel, ylabel = L"$⟨Δ𝐫_⊥^2⟩$ [$10^{14}$ km²]")
+    lines!(ax_Δx2, x, rperp_stds .^ 2)
+
+    hidexdecorations!.((ax1, ax_Δz2))
+    xlims!(ax1, 0, _t(max_time))
+    xlims!(ax2, 0, _t(max_time))
     return fp
 end
 

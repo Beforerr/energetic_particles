@@ -1,22 +1,9 @@
-using LinearAlgebra
-
 """
-Monte Carlo simulation for long-term particle behavior with current sheet interactions.
-
 This module implements the Monte Carlo method for simulating energetic particle
 transport in the solar wind with current sheet interactions.
-
-# Algorithm
-1. Sample initial μ₀ ~ π
-2. Loop:
-   - Particles fly a distance l_n = const = l with τ_n time
-   - Particles interact with current sheet:
-     * Trapped for time T_n = T_n(μ_n, φ)
-     * Make perpendicular displacement d_n = d_n(μ_n, φ)
-     * Exit with new pitch angle μ_{n+1} = μ(μ_n, φ)
-   - T_n, d_n, μ_{n+1} depend on current sheet parameters Π_n from observation
 """
 
+using LinearAlgebra
 using Random
 using Statistics
 using StaticArrays
@@ -104,9 +91,6 @@ Simulate a single particle trajectory.
 - `l`: Distance between current sheets [km]
 - `v`: Particle parallel velocity [km/s]
 - `max_time`: Maximum simulation time [s]
-
-# Returns
-- `Vector{ParticleState}`: Trajectory as vector of particle states
 """
 function simulate_particle(sampler, l, v, max_time; kw...)
     csi = CurrentSheetInteraction(sampler)
@@ -137,7 +121,7 @@ function z_at(traj, t)
     idx = searchsortedlast(times, t)
     t1, t2 = times[idx], times[idx + 1]
     z1, z2 = z_positions[idx], z_positions[idx + 1]
-    return (z1 + (z2 - z1) * (t - t1) / (t2 - t1)) / 1u"km"
+    return (z1 + (z2 - z1) * (t - t1) / (t2 - t1))
 end
 
 function z_mean(trajs)
@@ -152,18 +136,18 @@ function rperp_at(traj, t)
     idx = searchsortedlast(times, t)
     t1, t2 = times[idx], times[idx + 1]
     rperp1, rperp2 = rperp_positions[idx], rperp_positions[idx + 1]
-    return rperp1 + (rperp2 - rperp1) * (t - t1) / (t2 - t1)
+    return (rperp1 + (rperp2 - rperp1) * (t - t1) / (t2 - t1))
 end
 
 norm2(x) = dot(x, x)
 
 function z_std(trajs)
-    return t -> std(z_at(traj, t) for traj in trajs)
+    return t -> std(z_at.(trajs, t))
 end
 
 # assuming a zero mean
 function rperp_std(trajs)
-    return t -> sqrt(mean(norm2(rperp_at(traj, t)) for traj in trajs))
+    return t -> sqrt(mean(norm2(rperp_at(traj, t)) for traj in trajs)) * u"km"
 end
 
 
