@@ -415,39 +415,3 @@ Every symbol is something you know from your physics:
 * (\pi) stationary for (P).
 
 To get (\langle\Delta z^2(t)\rangle) at a given time, you invert (\tilde M_2(s)) numerically in (s); to get asymptotics, look at small-(s).
-
----
-
-## 4. Where the “accumulative” property shows up
-
-Two crucial places:
-
-1. **Form of Λᵢ(k,s)**
-
-   Because each step in (z) is exactly (\pm \ell_0) (no geometry), we have:
-
-   [
-   \Lambda_i(k,s) = e^{ik\sigma_i\ell_0 - s\tau_i}.
-   ]
-
-   There is no dependence on some orientation vector; just a sign. That makes
-   (A'(0,s)) and (A''(0,s)) extremely simple.
-
-2. **No projection / dilution**
-
-   In perpendicular transport, random orientations mean vector contributions partly cancel directionally; you had to track a 2D (or tensor) structure.
-
-   Here:
-
-   * Every (\Delta z_n) lies on the same axis.
-   * So all the correlations in (\mathrm{sgn}(\mu_n)) directly feed into (\langle\Delta z^2\rangle).
-   * That’s exactly why the MSD and κ∥ can be written purely in terms of:
-
-     * the μ-Markov chain eigenstructure,
-     * the μ-dependent waiting times,
-     * and the fixed step length (\ell_0).
-
-If you’d like, I can now:
-
-* collapse that Laplace-space formula to the simpler Green–Kubo-like expression for κ∥,
-* or write the explicit eigenmode expression (sum over eigenvalues of (P)) so you can see (\langle\Delta z^2(t)\rangle) as a sum of exponentials in (t).
