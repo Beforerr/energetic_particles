@@ -1,26 +1,6 @@
-
----
-execute:
-  eval: false
-engine: julia
----
-
 # Long-term behavior using Monte Carlo
 
 @aguedaModelingEffectsPitchangle2005, @magdziarzCompetitionSubdiffusionLevy2007
-
-## Algorithm
-
-1. Sample initial $\mu_0 \sim \pi$.
-2. Loop:
-    - Particles fly a distance of $l_n = const = l$ with $\tau_n$ time
-    - Particles interact with current sheet: particle is trapped in the current sheet for $T_n = T_n(μ_n, φ)$, make a perpendicular displacement of $d_n = d_n(μ_n, φ)$. And when leaving, it has a new pitch angle $μ_{n+1} = μ(μ_n, φ)$. `T_n`, `d_n`, `μ_{n+1}` depends on the current sheet parameters $\Pi_n$ from observation.
-
-d_n, T_n, μ_{n+1} are results from test particle simulation.
-
-Then We can interpolate $z(t)$ between events and average $z(t)^2$ over many particles.
-
-We can assume gyrophase $φ$ is totally randomized after interaction.
 
 ## Basic Usage
 

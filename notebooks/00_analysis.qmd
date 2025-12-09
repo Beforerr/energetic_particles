@@ -187,12 +187,5 @@ plot_diffusion(df)
 ```
 
 ```{julia}
-plot_diffusion(df; add_perp=false)
-easy_save("para_diffusion")
-```
-
-![](../figures/para_diffusion.png)
-
-```{julia}
 plot_diffusion(df_me)
 ```
