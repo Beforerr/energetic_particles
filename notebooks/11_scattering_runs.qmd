@@ -1,0 +1,317 @@
+---
+execute:
+  eval: false
+---
+
+# Particle Scattering in a Shear-Profile Current Sheet
+
+This notebook studies particle scattering in the magnetic field configuration
+
+$$
+B_z = B_n = \text{const}, \qquad
+B_x = B_0 \frac{z/L}{\!\left(1 + \tfrac{a}{2}\!\left(\tfrac{z}{L}\right)^{\!2}\right)^{\!2}}
+$$
+
+The corresponding field-line trajectory is
+
+$$
+x(z) = \frac{B_0}{B_n}\,\frac{\tfrac{1}{2}(z/L)^2}{1 + \tfrac{a}{2}(z/L)^2}
+$$
+
+which is the profile shown in the figure: field lines bend toward the
+current sheet centre ($z=0$) from both sides and approach an asymptote
+$x_\infty = B_0/(a B_n)$ as $|z|\to\infty$.
+
+## Setup
+
+```{julia}
+using CurrentSheetTestParticle
+using CurrentSheetTestParticle: RotationalDiscontinuity, solve_param, DEFAULT_TSPAN
+using CurrentSheetTestParticle.Analysis
+using TestParticleAnalysis: tp_pairing, tp_mapping
+using DrWatson
+using DataFrames, DataFramesMeta
+using CairoMakie, AlgebraOfGraphics
+using StaticArrays
+using Unitful
+using Beforerr
+includet("../src/utils.jl")
+includet("../src/scattering_config.jl")
+```
+
+## Field profile visualisation
+
+```{julia}
+# Plot B_x(z) and field lines for several values of a and ε = B_0/B_n
+let
+    fig = Figure(size = (900, 400))
+
+    # ── Left panel: B_x(z/L) profile ─────────────────────────────────────
+    ax1 = Axis(fig[1, 1];
+        xlabel = L"z/L",
+        ylabel = L"B_x / B_n",
+        title  = "Transverse field profile")
+
+    ξ = range(-4, 4; length = 500)
+    for a in [1.0, 2.0, 4.0]
+        lines!(ax1, ξ, @. ξ / (1 + a/2 * ξ^2)^2; label = "a = $a")
+    end
+    axislegend(ax1)
+
+    # ── Right panel: field lines x(z/L) ──────────────────────────────────
+    ax2 = Axis(fig[1, 2];
+        xlabel = L"x \cdot B_n / (B_0 L)",
+        ylabel = L"z/L",
+        title  = "Field lines  [x(z) = ½(z/L)² / (1 + a/2·(z/L)²)]")
+
+    for a in [1.0, 2.0, 4.0]
+        x_norm = @. (1/2 * ξ^2) / (1 + a/2 * ξ^2)
+        lines!(ax2, x_norm, ξ; label = "a = $a")
+    end
+    axislegend(ax2)
+
+    easy_save("scattering_field_profile")
+    fig
+end
+```
+
+## Single-interaction test
+
+Solve one particle trajectory in the new field to verify the setup.
+
+```{julia}
+# Reference normalisation
+B_n  = 10u"nT"
+B_0  = 5u"nT"     # ε = B_0/B_n = 0.5
+L    = 3000u"km"
+a    = 2.0
+
+cfg = ScatteringConfig(; B_n, B_0, L, a, sign = 1)
+
+# Normalisation
+norm_cfg = normalization(cfg)
+@info "V₀ = $(norm_cfg.V₀)"
+@info "t_c = $(norm_cfg.t_c)"
+
+# Dimensionless field
+B_norm = normalize(cfg)
+@info "Field at z/L = 1: B = $(B_norm(SA[0.0, 0.0, 1.0]))"
+```
+
+## Parameter scan: ε and a
+
+Vary the transverse-to-normal field ratio `ε = B_0/B_n` and the
+profile shape parameter `a`, then analyse the resulting pitch-angle
+diffusion.
+
+```{julia}
+function run_scattering_sim(d; verbose = false)
+    save_everystep = false
+    diffeq         = (; dtmax = 1e-3)
+
+    cfg = ScatteringConfig(;
+        B_n  = d[:B_n],
+        B_0  = d[:B_0],
+        L    = d[:L],
+        a    = d[:a],
+    )
+
+    # Use the same solve_params machinery, passing the new field callable
+    sols, (wϕs, B, u0s) = solve_params(
+        RDProblemParams(;       # reuse infrastructure; field override below
+            diffeq,
+            B     = cfg,        # the ScatteringConfig acts as the field
+            v     = d[:v],
+            init_kwargs = d[:init_kwargs],
+        ); save_everystep, verbose)
+
+    results = process_sols(sols, B, wϕs)
+    results.v .= d[:v]
+    results.ε .= NoUnits(d[:B_0] / d[:B_n])
+    results.a .= d[:a]
+    d[:results] = results
+    d
+end
+```
+
+```{julia}
+# Scan over ε = B_0/B_n and profile shape a
+B_n_ref = 10u"nT"
+L_ref   = 3000u"km"
+
+config = Dict(
+    :B_n        => B_n_ref,
+    :B_0        => [2.0, 5.0, 10.0, 20.0] .* u"nT",   # ε ∈ {0.2, 0.5, 1, 2}
+    :L          => L_ref,
+    :a          => [1.0, 2.0, 4.0],
+    :v          => [8, 16, 32],
+    :init_kwargs => (; w = -0.8:0.1:0.8, Nϕ = 128),
+)
+
+all_params  = dict_list(config)
+scan_results = produce_or_load.(run_scattering_sim, all_params, datadir("scattering"))
+```
+
+## Diffusion coefficients
+
+```{julia}
+using Statistics, StatsBase
+
+function weighted_diffusion(df, s_fs)
+    @chain df begin
+        @rtransform! @astable begin
+            :s_fs      = s_fs
+            :v_para_0  = :v * :μ0
+            :v_para_1  = :v * :μ1
+            :T         = :t1 + s_fs / abs(:v_para_1)
+            :Δs_para   = :s_cs + s_fs * (sign(:v_para_1 / :v_para_0) -
+                             abs(:v_para_0 / :v_para_1)) -
+                         abs(:v_para_0) * :t1
+            :κ_para    = (:Δs_para^2) / :T
+            :κ_perp    = (:Δs_perp^2) / :T
+        end
+        @transform! :w = @. abs(:μ0) * sqrt(1 - :μ0^2)
+        @groupby(:ε, :a, :v)
+        @combine @astable begin
+            w             = StatsBase.weights(:w)
+            Δs_perp_std   = std(:Δs_perp, w; mean = 0)
+            Δs_para_std   = std(:Δs_para, w)
+            T_mean        = mean(:T, w)
+            :κ_para       = Δs_para_std / T_mean
+            :κ_perp       = Δs_perp_std / T_mean
+            :κ_ratio      = :κ_perp / :κ_para
+        end
+    end
+end
+```
+
+```{julia}
+result = let
+    dfs = map(scan_results) do res
+        d = res[1]
+        d[only(keys(d) ∩ [:results, "results"])]
+    end
+    vcat(dfs...)
+end
+
+s_fs_ref = 1e4   # reference free-streaming distance (normalised)
+dc_df    = weighted_diffusion(result, s_fs_ref)
+```
+
+## Plots
+
+### κ vs ε for different profile shapes
+
+```{julia}
+let
+    fig  = Figure(size = (900, 600))
+    axis = (; xscale = log10, yscale = log10)
+
+    ax1 = Axis(fig[1, 1]; xlabel = L"ε = B_0/B_n", ylabel = L"κ_∥", axis...)
+    ax2 = Axis(fig[2, 1]; xlabel = L"ε = B_0/B_n", ylabel = L"κ_⊥", axis...)
+    ax3 = Axis(fig[3, 1]; xlabel = L"ε = B_0/B_n", ylabel = L"κ_⊥/κ_∥", axis...)
+
+    for (ia, a_val) in enumerate([1.0, 2.0, 4.0])
+        sub = @subset(dc_df, :a .== a_val, :v .== 8)
+        sort!(sub, :ε)
+        label = "a = $a_val"
+        c     = Cycled(ia)
+        scatterlines!(ax1, sub.ε, sub.κ_para;  label, color = c)
+        scatterlines!(ax2, sub.ε, sub.κ_perp;  label, color = c)
+        scatterlines!(ax3, sub.ε, sub.κ_ratio; label, color = c)
+    end
+
+    axislegend(ax1; position = :lt)
+    hidexdecorations!.((ax1, ax2))
+    easy_save("κ_ε_scan_scattering")
+    fig
+end
+```
+
+### κ vs particle speed for fixed field geometry
+
+```{julia}
+let
+    fig  = Figure(size = (600, 500))
+    axis = (; xscale = log10, yscale = log10)
+    ax   = Axis(fig[1, 1]; xlabel = L"v / V_0", ylabel = L"κ", axis...)
+
+    for (ia, a_val) in enumerate([1.0, 2.0, 4.0])
+        sub = @subset(dc_df, :a .== a_val, :ε .≈ 0.5)
+        sort!(sub, :v)
+        c = Cycled(ia)
+        scatterlines!(ax, sub.v, sub.κ_para;  label = "κ_∥  a=$a_val", color = c)
+        scatterlines!(ax, sub.v, sub.κ_perp;  label = "κ_⊥  a=$a_val", color = c,
+                      linestyle = :dash)
+    end
+
+    axislegend(ax; position = :lt, nbanks = 2)
+    easy_save("κ_vscan_scattering")
+    fig
+end
+```
+
+## Long-term Monte Carlo transport
+
+Use the scattering configuration in the full Monte Carlo simulation to
+obtain ensemble-averaged diffusion coefficients.
+
+```{julia}
+using ParticlesTransport
+using ParticlesTransport: simulate_particle
+
+max_time = 2e4u"s"
+l        = 2 * 60 * 400.0u"km"   # ~48 000 km  (4-min wait @ 400 km/s)
+energies = (100u"keV", 300u"keV", 1u"MeV", 3u"MeV", 10u"MeV")
+
+# Build a deterministic sampler for ε = 0.5, a = 2 (reference case)
+ref_sampler = build_scattering_sampler(;
+    B_n       = 10u"nT",
+    B_0_range = (4.5u"nT", 5.5u"nT"),   # narrow range around ε ≈ 0.5
+    L         = 3000u"km",
+    a         = 2.0,
+)
+
+scattering_results = map(energies) do e
+    produce(
+        Experiment(; e, l, id = "Scattering_a2_ε05", n = 512),
+        ref_sampler,
+    )["trajs"]
+end
+```
+
+```{julia}
+include("../src/plot.jl")
+
+update_theme!(; figure_padding = 2)
+plot_state_trajectories(scattering_results[3], max_time)
+easy_save("scattering_trajectories_1MeV")
+```
+
+```{julia}
+include("../src/diffusion.jl")
+
+sc_dcs = estimate_diffusion_coefficient.(scattering_results, max_time) |>
+         collect |> FieldViewable
+
+_κ(κ) = upreferred(κ / 1u"km^2/s")
+_E(e) = upreferred(e / 1u"MeV")
+
+fig = Figure()
+let plot! = scatterlines!
+    axis = (; xscale = log10, yscale = log10)
+    x    = _E.(collect(energies))
+
+    ax1 = Axis(fig[1, 1]; ylabel = L"κ_⊥  [\mathrm{km}^2/\mathrm{s}]", axis...)
+    plot!(ax1, x, collect(_κ.(sc_dcs.κ_perp)); label = "Scattering config (ε=0.5, a=2)")
+    axislegend(ax1; position = :lt)
+
+    ax2 = Axis(fig[2, 1]; xlabel = L"E\ [\mathrm{MeV}]",
+               ylabel = L"κ_∥  [\mathrm{km}^2/\mathrm{s}]", axis...)
+    plot!(ax2, x, collect(_κ.(sc_dcs.κ_para)))
+    hidexdecorations!(ax1)
+end
+
+easy_save("scattering_diffusion")
+fig
+```
