@@ -1,4 +1,4 @@
-#import "@preview/touying:0.6.1": *
+#import "@preview/touying:0.7.3": *
 #import "@preview/unify:0.7.1": unit
 #import themes.university: *
 
